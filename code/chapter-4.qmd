@@ -1,0 +1,198 @@
+---
+title: "Reading and writing data"
+author: "Mardan Mirzaguliyev"
+format: html
+editor: visual
+date: 2025/06/30
+---
+
+# 4.1 Reading data into R
+
+## 4.1 Reading data into R
+
+### 4.1.1 R
+
+#### 4.1.1.1 .rda and .rdata files
+
+```{r}
+#|label: reading .rda file
+
+load("data/sf_neighborhoods_suicide.rda")
+```
+
+#### 4.1.1.2 .rds files
+
+```{r}
+#|label: reading .rds file
+
+rds_example <- readRDS("data/shr_1976_2020.rds")
+
+head(rds_example)
+```
+
+### 4.1.2 Excel
+
+```{r}
+#|label: load the readr package
+
+library(readr)
+```
+
+```{r}
+#|label: reading .csv file
+
+shootings <- read_csv("data/fatal-police-shootings-data.csv")
+
+head(shootings)
+```
+
+```{r}
+#|label: convert a tibble to a data frame
+
+shootings <- as.data.frame(shootings)
+```
+
+```{r}
+#|label: load the readxl function
+
+library(readxl)
+```
+
+```{r}
+#|label: reading .xls and .xlsx files
+
+# Stop, question and frisk
+sqf <- read_excel("data/sqf-2019.xlsx")
+
+head(sqf)
+```
+
+### 4.1.3 Stata
+
+```{r}
+#|label: load the haven package
+
+library(haven)
+```
+
+-   **`read_dta()`** - Stata file, extension ".dta"
+
+-   **`read_sas()`** - SAS file, extension ".sas"
+
+-   **`read_sav`** - SPSS file, extension ".sav"
+
+```{r}
+#|label: reading .dta file
+
+shootings <- read_dta("data/fatal-police-shootings-data.dta")
+
+head(shootings)
+```
+
+### 4.1.4 SAS
+
+```{r}
+#|label: reading .sas file
+
+shootings <- read_sas("data/fatal-police-shootings-data.sas")
+
+head(shootings)
+```
+
+### 4.1.5 SPSS
+
+```{r}
+#|label: reading .sav file
+
+shootings <- read_sav("data/fatal-police-shootings-data.sav")
+
+head(shootings)
+```
+
+### 4.1.6 Fixed-width ASCII
+
+-   ASCII stands for American Standard Code for Information Interchange. It's a fundamental system that assigns unique numerical values to characters like letters, numbers, and symbols. Think of it as a translator, allowing computers to understand and display text. The original ASCII used a 7-bit system, supporting 128 characters. While still foundational, it's largely been replaced by Unicode (like UTF-8), which can handle characters from almost all global languages while remaining compatible with ASCII. (Gemini (2025-07-01))
+
+-   A fixed-width ASCII file is a text file where data is organized into columns with a predefined, unchanging number of characters for each column on every line. There are no delimiters; column separation is determined solely by their fixed positions and lengths. Excess space is filled with padding (usually spaces). These files require a separate "layout" document to understand the data structure. (Gemini (2025-07-01))
+
+```{r}
+#|label: load the asciiSetupReader package
+
+library(asciiSetupReader)
+```
+
+```{r}
+#|label: reading a fixed-width ASCI file
+
+shr <- read_ascii_setup(data = "data/2020_SHR_NATIONAL_MASTER_FILE.txt",
+                        setup_file = "data/ucr_shr.sps")
+
+head(shr)
+```
+
+# 4.2 Writing data
+
+-   `save()` - R file, extension ".rda" and ".rdata" (base R)
+
+-   `saveRDS()` - R file, extension ".rds" (base R)
+
+-   **`write_csv()`** - Excel file, extension “.csv” (`readxl` package)
+
+-   **`write_dta()`** - Stata file, extension “.dta” (`haven` package)
+
+-   **`write_sas()`** - SAS file, extension “.sas” (`haven` package)
+
+-   **`write_sav()`** - SPSS file, extension “.sav” (`haven` package)
+
+### 4.2.1 R
+
+#### 4.2.1.1 .rda and .rdata
+
+```{r}
+#|label: writing .rda and .rdata files
+
+save(shootings, file = "data/shootings.rda")
+```
+
+#### 4.2.1.2 .rds
+
+```{r}
+#|label: writing .rds file
+
+saveRDS(shootings, "data/shootings.rds")
+```
+
+### 4.2.2 Excel
+
+```{r}
+#|label: writing .csv file
+
+write_csv(shootings, "data/shootings.csv")
+```
+
+### 4.2.3 Stata
+
+```{r}
+#|label: writing .dta file
+
+write_dta(shootings, "data/shootings.dta")
+```
+
+### 4.2.4 SAS
+
+```{r}
+#|label: writing .sas file
+
+write_xpt(shootings, "data/shootings.sas")
+
+# Warning: `write_sas()` was deprecated in haven 2.5.2.
+# ℹ Please use `write_xpt()` instead.
+```
+
+### 4.2.5 SPSS
+
+```{r}
+#|label: writing .sav file
+
+write_sav(shootings,"data/shootings.sav")
+```

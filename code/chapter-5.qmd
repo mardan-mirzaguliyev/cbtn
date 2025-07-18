@@ -1,0 +1,35 @@
+---
+title: "Mise en place"
+author: "Mardan Mirzaguliyev"
+format: html
+editor: visual
+date: 2025/07/01
+---
+
+# 5.1 Starting with a pencil and paper
+
+## 5.1.1 Tables and graphs
+
+# 5.2 R Projects
+
+-   File \> New Project \> New Directory \>
+
+    -   New Project \> Create Project
+
+    -   Existing Directory \> Create Project
+
+## 5.2.1 Folders
+
+# 5.3 Modular R scripts
+
+# 5.4 Modular code
+
+## 5.4.1 Section labels
+
+-   `CTRL` + `SHIFT` + `R` \> `Insert Section` \> `Section Label` \> `OK`
+
+-   \# —-
+
+## 5.4.2 Helper R scripts
+
+-   **`source("script name")`** function

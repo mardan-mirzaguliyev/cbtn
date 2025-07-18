@@ -1,0 +1,72 @@
+---
+title: "R Markdown"
+author: "Mardan Mirzaguliyev"
+format: html
+editor: visual
+date: 2025/07/2025
+---
+
+-   File \> New File \> R Markdown
+
+-   Title \| Author \| Default Output Format \> Ok
+
+# 7.1 Code
+
+Insert (or CTRL (Command) + ALT + I) \> R
+
+## 7.1.1 Hiding code in the output
+
+```{r echo=FALSE}
+summary(cars)
+```
+
+# 7.2 Inline Code
+
+The data set mtcars has `r nrow(mtcars)` rows and `r ncol(mtcars)` columns. The mean of the mpg column is `r mean(mtcars$mpg)`.
+
+# 7.3 Tables
+
+```{r}
+#| label: load the knitr package
+
+library(knitr)
+```
+
+```{r}
+#|label: subset the data set
+
+mtcars_small <- mtcars[1:5, 1:5]
+mtcars_small
+```
+
+```{r}
+#|label: make a table
+
+kable(mtcars_small, caption = "This is an example caption")
+```
+
+# 7.4 Footnotes
+
+-   Insert \> Footnote
+
+-   Explain this sentence in a footnote[^1]
+
+[^1]: This is an example of a footnote.
+
+# 7.5 Citation
+
+-   Insert \> Citation
+
+# 7.6 Spell check
+
+-   ABC
+
+# 7.7 Making the output file
+
+-   Knit \>
+
+    -   Knit to HTML
+
+    -   Knit to PDF
+
+    -   Knit to Word

@@ -1,0 +1,271 @@
+---
+title: "Data types and structures"
+author: "Mardan Mirzaguliyev"
+format: html
+editor: visual
+date: 2025-06-27
+---
+
+# 3.1 Data types
+
+```{r}
+#|label: number as a text
+
+# a <- "2"
+# b <- "2"
+# 
+# a + b
+# 
+# Error in a + b : non-numeric argument to binary operator
+```
+
+```{r}
+#|label: correct number format
+
+a <- 2
+b <- 2
+
+a + b
+```
+
+# 3.3 Numeric, character, and logical (boolean)
+
+```{r}
+#|label: Usage of boolean type
+
+2 == 3
+```
+
+-   **`is()` function**
+
+```{r}
+#|label: example 1
+
+is(2)
+```
+
+```{r}
+#|label: example 2
+
+is("2")
+```
+
+```{r}
+#|label: example 3
+
+is(TRUE)
+```
+
+```{r}
+#|label: example 4
+
+is("TRUE")
+```
+
+```{r}
+#|label: example 5
+
+# is(true)
+
+# Error: object 'true' not found
+```
+
+-   **`class()` function**
+
+```{r}
+#|label: class() function examples
+
+class(2)
+class("2")
+class(TRUE)
+```
+
+-   **`is.numeric()`**
+
+-   **`is.character()`**
+
+-   **`is.logical()`** functions
+
+```{r}
+#|label: examples
+
+is.numeric(2)
+is.character("2")
+is.logical(TRUE)
+```
+
+-   [**The Uniform Crime Reporting (UCR)**](https://en.wikipedia.org/wiki/Uniform_Crime_Reports) program compiles official data on crime in the United States, published by the Federal Bureau of Investigation (FBI). UCR is "a nationwide, cooperative statistical effort of nearly 18,000 city, university and college, county, state, tribal, and federal law enforcement agencies voluntarily reporting data on crimes brought to their attention".
+
+```{r}
+#|label: load the data
+
+load("data/ucr2017.rda")
+```
+
+-   **`names()`**
+
+-   **`colnames()`** functions
+
+```{r}
+#|label: get column names
+
+names(ucr2017)
+```
+
+```{r}
+#|label: check the type of year column 1
+
+is(ucr2017$year)
+```
+
+```{r}
+#|label: check the type of year column 2
+
+is.numeric(ucr2017$year)
+```
+
+# 3.3 Data structures
+
+## 3.3.1 Vectors (collections of "things")
+
+```{r}
+#|label: creating a vector
+
+a <- c(1, 2, 3)
+a
+```
+
+```{r}
+#|label: Errors without c() function and comma
+
+# a <- 1, 2, 3
+# Error: unexpected ',' in "a <- 1,"
+
+# a <- c(1 2 3)
+# Error: unexpected numeric constant in "a <- c(1 2"
+```
+
+```{r}
+#|label: vectors must have elements of the same type
+
+c("cat", "dog", "2")
+```
+
+## 3.3.2 Data frames
+
+```{r}
+#|label: creating a data frame
+
+example <- data.frame(colum1 = c(1, 3, 5, 7, 9),
+                      column2 = c("hello",
+                                  "darkness",
+                                  "my",
+                                  "old",
+                                  "friend"))
+
+example
+```
+
+```{r}
+#|label: creating a data frame without naming columns
+
+example <- data.frame(c(1, 3, 5, 7, 9),
+                      c("hello",
+                        "darkness",
+                        "my",
+                        "old",
+                        "friend"))
+
+example
+```
+
+```{r}
+#|label: creating a data frame with vectors already made: using default column name and overwriting column name
+
+column_1 <- c(1, 3, 5, 7, 9)
+column_2 <- c("hello", "darkness", "my", "old", "friend")
+
+example <- data.frame(column_1, overridden_name = column_2)
+
+example
+```
+
+```{r}
+#|label: applying is() function
+
+is(example)
+```
+
+-   **`nrow()`**,**`ncol()`**, **`dim()`** functions
+
+```{r}
+#|label: applying nrow() and ncol() function
+
+nrow(example)
+
+ncol(example)
+```
+
+```{r}
+#|label: applying dim() function: the first value returned is the number of rows, the second value is the number of columns
+
+dim(example)
+```
+
+## 3.3.3 Other data structures
+
+### List
+
+-   A list is essentially a vector but where different values can be different types
+
+-   All data frames are actually lists. They are a list of vectors.
+
+```{r}
+#|label: creating a list
+
+list_example <- list(
+                    # number
+                    0,
+                    
+                    # character
+                    "hello",
+                    
+                    # logical
+                    TRUE,
+                    
+                    # numeric vector
+                     1:5,
+                    
+                    # matrix
+                    matrix(1:50, nrow = 10, ncol = 5),
+                    
+                    # list of numeric vector
+                    list(c(33, 66, 99)),
+                    
+                    # data frame
+                    head(mtcars))
+  
+head(list_example)
+```
+
+### Matrix
+
+-   A matrix is a two-dimensional object where every value is the same type.
+
+-   Think of a data.frame but each column has to be the same type.
+
+```{r}
+#|label: creating a matrix
+
+matrix(1:50, nrow = 5, ncol = 5)
+```
+
+```{r}
+#|label: matrix should have the same type of values
+
+matrix(c("1", 2:250), nrow = 5, ncol = 5)
+```
+
+```{r}
+matrix(1:50, nrow = 10, ncol = 5)
+```

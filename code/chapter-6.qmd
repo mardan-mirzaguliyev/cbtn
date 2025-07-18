@@ -1,0 +1,19 @@
+---
+title: "Collaboration"
+author: "Mardan Mirzaguliyev"
+format: html
+editor: visual
+date: 2025/02/05
+---
+
+# 6.1 Code review
+
+## 6.1.1 Style guidelines
+
+-   [tidyverse style guide](https://style.tidyverse.org/)
+
+# 6.2 Documentation
+
+## 6.2.1 Comments
+
+## 6.2.2 Vignettes
