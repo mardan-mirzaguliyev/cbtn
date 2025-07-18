@@ -70,3 +70,15 @@ use_git_config(user.name = "mardan-mirzaguliyev",
 -   Tools \> Project Options \> Git/SVN \> Git \> Yes \> Restart \> Yes
 
 # 9.5 Using Git through RStudio
+
+-   Environment \> Git \> More \> New Terminal \> Paste
+
+# 9.6 When to commit
+
+-   One of the benefits of using Git is that you will have a record of each version of the code that you commit - so you want to balance between having too many records that are very similar to each other (similar to saving a new version of a paper draft every time you add a sentence) and too few so you lose a lot of work if you need to go back (similar to saving a new version of the paper only every 10 pages of writing).
+
+# 9.7 Other resources
+
+-   [*R Packages*](https://r-pkgs.org/)
+
+-   [Happy Git and GitHub for the useR](https://happygitwithr.com/)
