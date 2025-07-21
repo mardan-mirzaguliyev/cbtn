@@ -1,0 +1,171 @@
+---
+title: "10 Subsetting: Making big things small"
+author: "Mardan Mirzaguliyev"
+format: html
+editor: visual
+date: 2025/07/21
+---
+
+# 10.1 Select specific values
+
+```{r}
+#|label: create animals vector
+
+animals <- c("cat", "dog", "gorilla", "buffalo", "lion", "snake")
+animals
+```
+
+-   Indexing: `objectp[index]`
+
+```{r}
+#|label: index one value
+
+animals[3]
+```
+
+```{r}
+#|label: index multiple values
+
+animals[c(1, 2, 3)]
+```
+
+-   Creating a sequence: `first_number:last_number`
+
+```{r}
+#|label: create a sequence with a colon operator
+
+1:3
+```
+
+```{r}
+#|label: index with a colon operator
+
+animals[1:3]
+```
+
+```{r}
+#|label: change the order of indexes
+
+animals[c(3, 4, 1)]
+```
+
+```{r}
+#|label: remove the value at a certain index
+
+animals[-1]
+```
+
+```{r}
+#|label: remove multiple values at certin indexes using c() function
+
+animals[-c(1, 2, 3)]
+```
+
+```{r}
+#|label: results of sequences with and without parentheses
+
+-1:3
+
+-(1:3)
+```
+
+```{r}
+#|label: remove multiple values at certin indexes using a colon operator
+
+animals[-(1:3)]
+```
+
+# 10.2 Logical values and operations
+
+```{r}
+#|label: use booleans to return (a) certain value(s)
+
+animals[c(TRUE, TRUE, FALSE, FALSE, FALSE, FALSE)]
+```
+
+-   `==` Equals (compared to a single value)
+
+-   `%in%` Equals (one value match out of multiple comparisons)
+
+-   `!=` Does not equal
+
+-   `<` Less than
+
+-   `>` Greater than
+
+-   `<=` Less than or equal to
+
+-   `>=` Greater than or equal to
+
+```{r}
+#|label: create a numbers vector
+
+numbers <- 1:10
+numbers
+```
+
+## 10.2.1 Matching a single value
+
+```{r}
+#|label: checking the equality
+
+2 == 2
+2 == 3
+```
+
+```{r}
+#|label: check existence of value inside a vector
+
+numbers == 2
+numbers == 11
+
+
+# Character check is case sensitive
+animals == "gorilla"
+animals == "Gorilla"
+```
+
+## 10.2.2 Matching multiple values
+
+```{r}
+#|label: %in% operator
+
+2 %in% c(1, 2, 3)
+
+# Character check is case sensitive
+animals %in% c("cat", "dog", "gorilla")
+animals %in% c("Cat", "Dog", "Gorilla")
+```
+
+## 10.2.3 Does not match
+
+```{r}
+#|label: oposite of the match
+
+2 != 3
+
+"cat" != "gorilla"
+```
+
+```{r}
+#|label: check the match with multiple values
+
+!animals %in% c("cat", "dog", "gorilla")
+```
+
+## 10.2.4 Greater than or less than
+
+```{r}
+#|label: check inequality
+
+6 > 5
+6 < 5
+6 >= 5
+5 <= 5
+```
+
+```{r}
+#|label: usage with the vectors
+
+numbers > 3
+```
