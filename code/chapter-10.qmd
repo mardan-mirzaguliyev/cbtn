@@ -128,7 +128,7 @@ animals == "Gorilla"
 ## 10.2.2 Matching multiple values
 
 ```{r}
-#|label: %in% operator
+#|label: in operator
 
 2 %in% c(1, 2, 3)
 
@@ -168,4 +168,221 @@ animals %in% c("Cat", "Dog", "Gorilla")
 #|label: usage with the vectors
 
 numbers > 3
+```
+
+## 10.2.5 Combining conditional statements - or, and
+
+-   `Condition 1 | Condition 2`
+
+-   `Condition 1 & Condition 2`
+
+```{r}
+#|label: or (|) and and (&) operators
+
+2 == 3 | 2 > 1
+
+2 == 3 & 2 > 1
+```
+
+# 10.3 Subsetting a data.frame
+
+```{r}
+#|label: read data set into R
+
+ucr <- readRDS("data/offenses_known_yearly_1960_2020.rds")
+```
+
+```{r}
+#|label: first 6 rows and columns
+
+ucr[1:6, 1:6]
+```
+
+-   Number of rows
+
+-   Number of columns
+
+```{r}
+#|labels: number of rows and columns
+
+nrow(ucr)
+
+ncol(ucr)
+```
+
+```{r}
+#|label: the name of each variable
+
+names(ucr)
+```
+
+-   Subsetting goal for this data set:
+
+    -   Only rows where the state equals Colorado
+
+    -   Only rows where the year is 2011-2017
+
+    -   Only the following columns: *actual_murder*, *state*, *year*, *population*, *ori*, *agency_name*
+
+## 10.3.1 Select specific columns
+
+-   `data$column`
+
+```{r}
+#|label: the first 6 rows of the column agency_name
+
+head(ucr$agency_name)
+```
+
+```{r}
+#|label: the first 6 rows of the column actual murder
+
+head(ucr$actual_murder)
+```
+
+## 10.3.2 Select specific rows
+
+-   `[row, column]`
+
+```{r}
+#|label: the first row of the first column
+
+ucr[1, 1]
+```
+
+```{r}
+#|label: error
+
+# ucr[1, ucr$agency_name]
+# Error: unexpected symbol in "ucr[1 ucr"
+
+# ucr[1 ucr$agency_name]
+# Error: unexpected symbol in "ucr[1 ucr"
+```
+
+```{r}
+#|label: multiple rows and multiple columns
+
+ucr[1:6, 1:6]
+```
+
+```{r}
+#|label: a vector of the names of the columns
+
+ucr[1:6, c("ori", "year")]
+```
+
+```{r}
+#|label: the first row of the every column
+
+ucr[1, ]
+```
+
+```{r}
+#|label: every row of the first column
+
+ucr[ , 1]
+```
+
+```{r}
+#|label: the below code returns the column that matches the numner inside the square brackets
+
+head(ucr[1])
+```
+
+```{r}
+#|label: asking for any number above the number of the columns will returns an error
+
+# head(ucr[1000])
+# Error in `[.data.frame`(ucr, 1000) : undefined columns selected
+```
+
+```{r}
+#|label: with dollar sign notation there is no need to indicate any column, only row or rows must be specified
+
+ucr$agency_name[15]
+```
+
+## 10.3.3 Subset Colorado data
+
+-   Subsetting goal for this data set:
+
+    -   Only rows where the state equals Colorado
+
+    -   Only rows where the year is 2011-2017
+
+    -   Only the following columns: actual_murder, state, year, population, ori, agency_name
+
+    ### 10.3.3.1 Subsetting using base R
+
+```{r}
+#|label: Base R - Step 1. Only rows where the state equals Colorado
+
+colorado <- ucr[ucr$state == "colorado", ]
+```
+
+```{r}
+#|label: Base R - Step 2. Only rows where the year is 2011-2017
+
+colorado <- colorado[colorado$year %in% 2011:2017, ]
+```
+
+```{r}
+#|label: Base R - Step 3. Only the following columns - actual_murder, state, year, population, ori, agency_name
+
+
+colorado <- colorado[ , c("actual_murder",
+                          "state",
+                          "year",
+                          "population",
+                          "ori",
+                          "agency_name")]
+```
+
+```{r}
+#|label: check the results of subsetting - Base R
+
+unique(colorado$state)
+
+unique(colorado$year)
+```
+
+### 10.3.3.2 Subsetting using `dplyr`
+
+```{r}
+#|label: load the dplyr package
+
+library(dplyr)
+```
+
+```{r}
+#|label: dplyr - Step 1. Only rows where the state equals Colorado
+
+colorado <- filter(ucr, state == "colorado")
+```
+
+```{r}
+#|label: dplyr - Step 2. Only rows where the year is 2011-2017
+
+colorado <- filter(ucr, year %in% 2011:2017)
+```
+
+```{r}
+#|label: dplyr - Step 1 and Step 2 all together
+
+colorado <- filter(ucr, state == "colorado", year %in% 2011:2017)
+```
+
+```{r}
+#|label: dplyr - Step 3. Only the following columns - actual_murder, state, year, population, ori, agency_name
+
+colorado <- select(colorado, actual_murder, state, year, population, ori, agency_name)
+```
+
+```{r}
+#|label: check the results of subsetting - dplyr
+
+unique(colorado$state)
+
+unique(colorado$year)
 ```
