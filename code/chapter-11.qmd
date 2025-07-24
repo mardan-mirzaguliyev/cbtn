@@ -232,3 +232,51 @@ plot(x = colorado_agg$year,
      ylab = "Murders per 100k Population",
      main = "Murder Rate in Colorado, 2011-2017")
 ```
+
+# 11.4 Pipes in `dplyr`
+
+```{r}
+#|label: without pipe
+
+colorado <- filter(ucr, state == "colorado", 
+                   year %in% 2011:2017)
+
+colorado <- select(colorado,
+                   actual_murder,
+                   actual_robbery_total,
+                   state,
+                   year,
+                   population,
+                   ori,
+                   agency_name)
+
+head(colorado)
+```
+
+```{r}
+#| label: with pipe
+
+colorado <- ucr |> filter(state == "colorado",
+                          year %in% 2011:2017) |> 
+  select(actual_murder,
+         actual_robbery_total,
+         state, year, population,
+         ori, agency_name)
+
+head(colorado)
+```
+
+```{r}
+#|label: write code using pipe in conventional way - have a new line after the pipe and after each comma
+
+colorado <- ucr |> 
+  filter(state == "colorado",
+         year %in% 2011:2017) |> 
+  select(actual_murder,
+         actual_robbery_total,
+         state,
+         year,
+         population,
+         ori,
+         agency_name)
+```
