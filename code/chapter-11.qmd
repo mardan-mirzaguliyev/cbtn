@@ -1,0 +1,234 @@
+---
+title: "Exploratory data analysis"
+author: "Mardan Mirzaguliyev"
+format: html
+editor: visual
+date: 2025/07/24
+---
+
+When you first start working on new data it is important to spend some time getting familiar with the data. This includes understanding how many rows and columns it has, what each row means (is each row an offender? a victim? crime in a city over a day/month/year?, etc.), and what columns it has. **Basically you want to know if the data is capable of answering the question you are asking.**
+
+While not a comprehensive list, the following is a good start for exploratory data analysis of new data sets.
+
+-   What are the units (what does each row represent?)?
+
+-   What variables are available?
+
+-   What time period does it cover?
+
+-   Are there outliers? How many?
+
+-   Are there missing values? How many?
+
+```{r}
+#|label: load the data set
+
+load("data/ucr2017.rda")
+```
+
+```{r}
+#|label: check the first 6 rows
+
+head(ucr2017)
+```
+
+```{r}
+#|label: check column names
+
+names(ucr2017)
+```
+
+# 11.1 Summary and Table
+
+```{r}
+#|label: summary statistics of numeric variables
+
+summary(ucr2017)
+```
+
+```{r}
+#|label: each unique value and its frequency in a vector and/or (column of the data frame)
+
+
+table(ucr2017$year)
+
+# Using it with numeric variables to show the frequency of each numeric value
+head(table(ucr2017$population))
+```
+
+```{r}
+#|label: use head for a single vector or a column of a data frame
+
+head(ucr2017$agency_name)
+```
+
+```{r}
+#|label: real use case of table() function where the number of categories is important, such as years, states, neighbourhoods etc.
+
+# The default is alphabetical order
+
+table(ucr2017$state)
+```
+
+```{r}
+#|label: sort in increasing order - default to sort() function
+
+sort(table(ucr2017$state))
+```
+
+```{r}
+#|label: sort in decreasing order
+
+sort(table(ucr2017$state), decreasing = TRUE)
+```
+
+# 11.2 Graphing
+
+```{r}
+#|label: relationship between actual robbery total and actual murder per year
+
+plot(ucr2017$actual_murder,
+     ucr2017$actual_robbery_total)
+```
+
+```{r}
+#|label: load the dplyr package
+
+library(dplyr)
+```
+
+```{r}
+#|label: filter the cities with a population over 1000000
+
+ucr2017_big_cities <- filter(ucr2017,
+                             population > 1000000)
+```
+
+```{r}
+#|label: graphing the relationship between actual robbery total and actual murder per year in the new data
+
+plot(ucr2017_big_cities$actual_murder,
+     ucr2017_big_cities$actual_robbery_total)
+```
+
+```{r}
+#|label: add labels to the scatterplot
+
+plot(ucr2017_big_cities$actual_murder,
+     ucr2017_big_cities$actual_robbery_total,
+     xlab = "Murders",
+     ylab = "Robberies",
+     main = "Relationship between murder and robbery")
+```
+
+# 11.3 Aggregating (summaries of groups)
+
+-   Aggregating data means that we group values at some higher level than they currently are (e.g. from agency to state, from day to month, from city street to city neighborhood) and then do some mathematical operation of our choosing (in our case usually sum) to that group.
+
+```{r}
+#|label: read the data to R
+
+ucr <- readRDS("data/offenses_known_yearly_1960_2020.rds")
+```
+
+```{r}
+#|label: filter rows and select relevant columns
+
+colorado <- filter(ucr, state == "colorado",
+                   year %in% 2011:2017)
+
+colorado <- select(colorado, 
+                   actual_murder, 
+                   actual_robbery_total,
+                   state,
+                   year,
+                   population,
+                   ori,
+                   agency_name)
+```
+
+```{r}
+#|label: group the data
+
+colorado <- group_by(colorado, year)
+```
+
+```{r}
+#|label: summarize the data - aggregate a single column
+
+summarize(colorado, sum(actual_murder))
+```
+
+```{r}
+#|label: summarize the data - aggregate another column
+
+summarize(colorado, sum(actual_murder),
+          sum(actual_robbery_total))
+```
+
+```{r}
+#|label: summatize the data - use different mathematical operation
+
+summarize(colorado, sum(actual_murder),
+          sum(actual_robbery_total),
+          mean(actual_robbery_total))
+```
+
+```{r}
+#|label: create aggregated data set with appropriate column names
+
+colorado_agg <- summarize(colorado,
+                          murders = sum(actual_murder),
+                          robberies = sum(actual_robbery_total),
+                          population = sum(population))
+
+colorado_agg
+```
+
+-   Standardize the murder data by creating **a murder and robbery rate per 100,000 people**
+
+```{r}
+#|label: add a murder rate column
+
+colorado_agg$murder_rate <- colorado_agg$murders / colorado_agg$population * 100000
+```
+
+```{r}
+#|label: add a robbery rate column
+
+colorado_agg$robbery_rate <- colorado_agg$robberies / colorado_agg$population * 100000
+```
+
+```{r}
+#|label: add new columns in one go
+
+mutate(colorado_agg, 
+       murder_rate = murders / population * 100000,
+       robbery_rate = robberies / population * 10000)
+```
+
+```{r}
+#|label: creating time-series graph - year vs murder rate - default is scatter plot for plot() function
+
+plot(x = colorado_agg$year,
+     y = colorado_agg$murder_rate)
+```
+
+```{r}
+#|label: creating time-series graph - year vs murder rate - line graph
+
+plot(x = colorado_agg$year,
+     y = colorado_agg$murder_rate,
+     type = "l")
+```
+
+```{r}
+#|label: add labels to the line graph
+
+plot(x = colorado_agg$year,
+     y = colorado_agg$murder_rate,
+     type = "l",
+     xlab = "Year",
+     ylab = "Murders per 100k Population",
+     main = "Murder Rate in Colorado, 2011-2017")
+```
