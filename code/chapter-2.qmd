@@ -6,7 +6,7 @@ editor: visual
 date: 2025/06/21
 ---
 
-# 2.1 Using RStudio
+## 2.1 Using RStudio
 
 Writing a code in an R Scripts keep the code written in a file and this file can be:
 
@@ -16,7 +16,7 @@ Writing a code in an R Scripts keep the code written in a file and this file can
 
 3.  Shared with others
 
-## 2.1.1 Opening an R Script
+### 2.1.1 Opening an R Script
 
 -   File \> New File \> R Script
 
@@ -26,7 +26,7 @@ Writing a code in an R Scripts keep the code written in a file and this file can
 
 -   File \> New File \> Quarto Document
 
-## 2.1.2 Setting the working directory
+### 2.1.2 Setting the working directory
 
 -   Session \> Set Working Directory \>
 
@@ -40,35 +40,35 @@ Writing a code in an R Scripts keep the code written in a file and this file can
 
 -   `setwd("path")`
 
-## 2.1.3 Changing RStudio
+### 2.1.3 Changing RStudio
 
 -   Tools \> Global Options to open up a window with a number of different tabs to change how R behaves and how it looks.
 
-### 2.1.3.1 General
+#### 2.1.3.1 General
 
 -   Tools \> Global Options \> General \> Uncheck the “Restore .RData into workspace at startup” section \> set “Save workspace to .RData on exit:” section to "Never".
 
-### 2.1.3.2 Code
+#### 2.1.3.2 Code
 
 -   Tools \> Global Options \> Code \> Editing \> Check "Soft-wrap R source files" section
 
-#### 2.1.3.2.1 Saving
+##### 2.1.3.2.1 Saving
 
 -   Tools \> Global Options \> Code \> Saving \> Check “Automatically save when editor loses focus” section and Set time
 
-### 2.1.3.3 Appearance
+#### 2.1.3.3 Appearance
 
 -   Tools \> Global Options \> Appearance
 
-### 2.1.3.4 Pane Layout
+#### 2.1.3.4 Pane Layout
 
 -   Tools \> Global Options \> Page Layout
 
-## 2.1.4 Helpful Cheatsheets
+### 2.1.4 Helpful Cheatsheets
 
 -   Help \> Cheet Sheets
 
-# 2.2 Assigning variables
+## 2.2 Assigning variables
 
 ```{r}
 #|label:  Assiging variable
@@ -105,10 +105,12 @@ example_123_value.demonstration <- example_123_value.demonstration * 10
 example_123_value.demonstration
 ```
 
-# 2.3 What are functions (and packages)?
+## 2.3 What are functions (and packages)?
 
 ```{r}
+#|label: first 6 rows of mtcars dataset
 
+head(mtcars)
 ```
 
 -   A function is a bunch of code (it could range from a single line of code to hundreds of lines) that has been assigned to an object.
@@ -127,9 +129,9 @@ library(caesar)
 caesar("example text")
 ```
 
-# 2.4 Reading data into R
+## 2.4 Reading data into R
 
-## 2.3.1 Loading data
+### 2.3.1 Loading data
 
 ```{r}
 #|label: loading data
@@ -137,7 +139,7 @@ caesar("example text")
 load("data/ucr2017.rda")
 ```
 
-# 2.5 First steps to exploring data
+## 2.5 First steps to exploring data
 
 -   Four functions to explore data:
 
@@ -149,7 +151,7 @@ load("data/ucr2017.rda")
 
     -   `View()`
 
-## `head()` funcition
+-   `head()` funcition
 
 ```{r}
 #|:label: head function example
@@ -157,7 +159,7 @@ load("data/ucr2017.rda")
 head(ucr2017)
 ```
 
-## `summary()` function
+-   `summary()` function
 
 ```{r}
 #|:label: summary function example
@@ -165,7 +167,7 @@ head(ucr2017)
 summary(ucr2017)
 ```
 
-## `plot()` function
+-   `plot()` function
 
 ```{r}
 #|label: plot function example
@@ -173,7 +175,7 @@ summary(ucr2017)
 plot(x = ucr2017$actual_murder, y = ucr2017$actual_assault_aggravated)
 ```
 
-## `View()` function
+-   `View()` function
 
 ```{r}
 #|label: view function example

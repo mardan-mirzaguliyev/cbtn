@@ -6,7 +6,7 @@ editor: visual
 date: 2025-06-27
 ---
 
-# 3.1 Data types
+## 3.1 Data types
 
 ```{r}
 #|label: number as a text
@@ -28,7 +28,7 @@ b <- 2
 a + b
 ```
 
-# 3.3 Numeric, character, and logical (boolean)
+## 3.3 Numeric, character, and logical (boolean)
 
 ```{r}
 #|label: Usage of boolean type
@@ -124,9 +124,9 @@ is(ucr2017$year)
 is.numeric(ucr2017$year)
 ```
 
-# 3.3 Data structures
+## 3.3 Data structures
 
-## 3.3.1 Vectors (collections of "things")
+### 3.3.1 Vectors (collections of "things")
 
 ```{r}
 #|label: creating a vector
@@ -151,7 +151,7 @@ a
 c("cat", "dog", "2")
 ```
 
-## 3.3.2 Data frames
+### 3.3.2 Data frames
 
 ```{r}
 #|label: creating a data frame
@@ -212,13 +212,13 @@ ncol(example)
 dim(example)
 ```
 
-## 3.3.3 Other data structures
+### 3.3.3 Other data structures
 
-### List
+-   **List**
 
--   A list is essentially a vector but where different values can be different types
+    -   A list is essentially a vector but where different values can be different types
 
--   All data frames are actually lists. They are a list of vectors.
+    -   All data frames are actually lists. They are a list of vectors.
 
 ```{r}
 #|label: creating a list
@@ -248,11 +248,11 @@ list_example <- list(
 head(list_example)
 ```
 
-### Matrix
+-   **Matrix**
 
--   A matrix is a two-dimensional object where every value is the same type.
+    -   A matrix is a two-dimensional object where every value is the same type.
 
--   Think of a data.frame but each column has to be the same type.
+    -   Think of a data.frame but each column has to be the same type.
 
 ```{r}
 #|label: creating a matrix

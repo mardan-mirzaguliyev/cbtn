@@ -6,8 +6,6 @@ editor: visual
 date: 2025/06/30
 ---
 
-# 4.1 Reading data into R
-
 ## 4.1 Reading data into R
 
 ### 4.1.1 R
@@ -130,7 +128,7 @@ shr <- read_ascii_setup(data = "data/2020_SHR_NATIONAL_MASTER_FILE.txt",
 head(shr)
 ```
 
-# 4.2 Writing data
+## 4.2 Writing data
 
 -   `save()` - R file, extension ".rda" and ".rdata" (base R)
 
