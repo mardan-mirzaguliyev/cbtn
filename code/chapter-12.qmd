@@ -1,0 +1,355 @@
+---
+title: "Regular Expressions"
+author: "Mardan Mirzaguliyev"
+format: html
+editor: visual
+date: 2025/08/04
+---
+
+-   `grep()` - Find
+
+-   `gsub()` - Find and Replace
+
+```{r}
+#|label: crime categories vector for practice
+
+crimes <- c(
+  "Arson",
+  "Assault",                                  
+  "Burglary",                                 
+  "Case Closure",                             
+  "Civil Sidewalks",                          
+  "Courtesy Report",                          
+  "Disorderly Conduct",                       
+  "Drug Offense",                             
+  "Drug Violation",                           
+  "Embezzlement",                             
+  "Family Offense",                           
+  "Fire Report",                              
+  "Forgery And Counterfeiting",               
+  "Fraud",                                    
+  "Gambling",                                 
+  "Homicide",                                 
+  "Human Trafficking (A), Commercial Sex Acts",
+  "Human Trafficking, Commercial Sex Acts",   
+  "Juvenile Offenses",                        
+  "Larceny Theft",                            
+  "Liquor Laws",                              
+  "Lost Property",                            
+  "Malicious Mischief",                       
+  "Miscellaneous Investigation",              
+  "Missing Person",                           
+  "Motor Vehicle Theft",                      
+  "Motor Vehicle Theft?",                     
+  "Non-Criminal",                             
+  "Offences Against The Family And Children", 
+  "Other",                                    
+  "Other Miscellaneous",                      
+  "Other Offenses",                           
+  "Prostitution",                             
+  "Rape",                                     
+  "Recovered Vehicle",                        
+  "Robbery",                                  
+  "Sex Offense",                              
+  "Stolen Property",                          
+  "Suicide",                                  
+  "Suspicious",                               
+  "Suspicious Occ",                           
+  "Traffic Collision",                        
+  "Traffic Violation Arrest",                 
+  "Vandalism",                                
+  "Vehicle Impounded",                        
+  "Vehicle Misplaced",                        
+  "Warrant",                                  
+  "Weapons Carrying Etc",                     
+  "Weapons Offence",                          
+  "Weapons Offense"
+)
+```
+
+## 12.1 Finding patterns in text with `grep()`
+
+-   The syntax for `grep()` is:
+
+    -   `grep("pattern", data)`
+
+-   where pattern is the pattern you are searching for, such as “a” if you want to find all values with the letter a.
+
+```{r}
+#|label: find a pattern "a" in crimes vector
+
+grep("a", crimes)
+```
+
+```{r}
+#|label: subsetting the crimes vector - crime categories containing the pattern "a"
+
+crimes[grep("a", crimes)]
+```
+
+```{r}
+#|label: find a pattern "Theft" in a crime vector
+
+grep("Theft", crimes)
+```
+
+```{r}
+#|label: subsetting the crime vector - crime categories containing the pattern "Theft"
+
+crimes[grep("Theft", crimes)]
+```
+
+```{r}
+#|label: display values of the pattern
+
+grep("Theft", crimes, value = TRUE)
+```
+
+```{r}
+#|label: grep() is case sensitive
+
+grep("theft", crimes, value = TRUE)
+```
+
+```{r}
+#|label: ignoring the case sensitivity in grep()
+
+grep("theft", crimes, value = TRUE, ignore.case = TRUE)
+```
+
+```{r}
+#|label: inverting the result of the pattern
+
+grep("theft", crimes, value = TRUE, ignore.case = TRUE, invert = TRUE)
+```
+
+## 12.2 Finding and replacing patterns in text with `gsub()`
+
+-   The syntax of `gsub()` is similar to `grep()` with the addition of a pattern to replace the pattern we found.
+
+    -   `gsub("find_pattern", "replace_pattern", data)`
+
+```{r}
+#|label: replacing a pattern "a" with a pattern "z"
+
+gsub("a", "z", "cat")
+```
+
+```{r}
+#|label: gsub() is case sensitive
+
+gsub("A", "z", "cat")
+```
+
+```{r}
+#|label: ignoring case sensitivity in gsub()
+
+gsub("A", "z", "cat", ignore.case = TRUE)
+```
+
+```{r}
+#|label: replaceing a pattern "Offence" with a pattern "Offense"
+
+gsub("Offence", "Offense", crimes)
+```
+
+```{r}
+#|label: replacing a pattern "a" with a pattern "" - replacing with an empty pattern
+
+gsub("a", "", crimes)
+```
+
+## 12.3 Useful special characters
+
+### 12.3.1 Multiple characters
+
+```{r}
+#|label: searching for multiple characters
+
+grep("[xyz]", crimes, value = TRUE)
+```
+
+```{r}
+#|label: the order does not matter
+
+grep("[zyx]", crimes, value = TRUE)
+```
+
+```{r}
+#|label: it also works for numbers - there is no data in crimes vector
+
+grep("[0123456789]", crimes, value = TRUE)
+```
+
+```{r}
+#|label: search for a repeated pattern - vowels
+
+grep("[aeiou][aeiou][aeiou]", crimes, value = TRUE)
+```
+
+```{r}
+#|label: making intervals
+
+grep("[x-z]", crimes, value = TRUE)
+```
+
+### 12.3.2 n-many of previous character `{n}`
+
+-   `{n}` means the preceding item will be matched exactly n times.
+
+```{r}
+#|label: n-number of mathces - searching for the three vowels pattern
+
+grep("[aeiou]{3}", crimes, value = TRUE)
+```
+
+### 12.3.3 n-many to m-many of previous character `{n,m}`
+
+-   While `{n}` says “the previous character (or characters inside a `[]`) must be present exactly n times”, we can allow a range by using `{n,m}`.
+
+```{r}
+#|label: n to m number of mathces - searching for 2-3 vowels in a pattern
+
+grep("[aeiou]{2,3}", crimes, value = TRUE)
+```
+
+```{r}
+#|label: searching for a pattern with exactly m times match - exactly 3 vowels in a row
+
+grep("[aeiou]{3,3}", crimes, value = TRUE)
+
+# Equivalent
+print("############")
+
+grep("[aeiou]{3}", crimes, value = TRUE)
+```
+
+```{r}
+#|label: up to m times including zero times - up to 3 vowels
+
+grep("[aeiou]{,3}", crimes, value = TRUE)
+```
+
+```{r}
+#|label: at least n times
+
+grep("[aeiou]{3,}", crimes, value = TRUE)
+```
+
+### 12.3.4 Start of string
+
+-   The `^` symbol (called a caret) signifies that what follows it is the **start** of the string.
+
+```{r}
+#|label: search for a starting pattern
+
+grep("^Family", crimes, value = TRUE)
+```
+
+### 12.3.5 End of string `$`
+
+-   The dollar sign `$` acts similar to the caret `^` except that it signifies that the value before it is the **end** of the string. 
+
+```{r}
+#|label: search for a ending pattern
+
+grep("Theft$", crimes, value = TRUE)
+```
+
+### 12.3.6 Anything `.`
+
+-   The `.` symbol is a stand-in for any value. 
+
+```{r}
+#|label: search for a pattern that contains "anything"
+
+grep("Weapons Offen.e", crimes, value = TRUE)
+```
+
+### 12.3.7 One or more of previous `+`
+
+-   The `+` means that the character immediately before it is present at least one time.
+
+-   This is the same as writing `{1,}`.
+
+-   If we wanted to find all values with only two words, we would start with some number of letters followed by a space followed by some more letters and the string would end.
+
+```{r}
+#|label: values with only two words
+
+grep("^[A-Za-z]+ [A-Za-z]+$", crimes, value = TRUE)
+```
+
+```{r}
+#|label: equivalent
+
+grep("^[A-Za-z]{1,} {1,}[A-Za-z]{1,}$", crimes, value = TRUE)
+```
+
+### 12.3.8 Zero or more of previous `*`
+
+-   The `*` special character says match zero or more of the previous character and is the same as `{0,}`.
+
+-   Combining `.` with `*` is powerful when used in `gsub()` to delete text before or after a pattern.
+
+```{r}
+#|label: a pattern that searches the text for the word “Weapons” and then deletes any text after that
+
+gsub("Weapons.*", "Weapons", crimes)
+```
+
+### 12.3.9 Multiple patterns `|`
+
+-   The vertical bar `|` special character allows us to check for multiple patterns. It essentially functions as “pattern A or Pattern B” with the `|` symbol replacing the word “or” (and making sure to not have any space between patterns.).
+
+```{r}
+#|label: check the crimes for the word “Drug” or the word “Weapons”
+
+grep("Drug|Weapons", crimes, value = TRUE)
+```
+
+### 12.3.10 Parentheses `()`
+
+-   Parentheses act similar to the square brackets `[]`, where we want everything inside but with parentheses the values must be in the proper order.
+
+```{r}
+#|label: values with a word "Offense"
+
+grep("(Offense)", crimes, value = TRUE)
+```
+
+```{r}
+#|label: search for the values with "Drug or Weapon Offense"
+
+grep("(Drug|Weapons) Offense", crimes, value = TRUE)
+```
+
+### 12.3.11 Optional text `?`
+
+-   The question mark indicates that the character immediately before the `?` is optional.
+
+```{r}
+#|label: search for the term "offens"
+
+grep("Offens?", crimes, value = TRUE)
+```
+
+```{r}
+#|label: combining ? with () and | to get both spellings of Weapon Offense
+
+grep("(Drug|Weapons) Offens?", crimes, value = TRUE)
+```
+
+## 12.4 Changing capitalization
+
+```{r}
+#|label: make all the values capitalized
+
+toupper(crimes)
+```
+
+```{r}
+#|label: make each value lower case
+
+tolower(crimes)
+```
