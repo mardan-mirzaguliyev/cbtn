@@ -6,7 +6,7 @@ editor: visual
 date: 2025/07/21
 ---
 
-# 10.1 Select specific values
+## 10.1 Select specific values
 
 ```{r}
 #|label: create animals vector
@@ -75,7 +75,7 @@ animals[-c(1, 2, 3)]
 animals[-(1:3)]
 ```
 
-# 10.2 Logical values and operations
+## 10.2 Logical values and operations
 
 ```{r}
 #|label: use booleans to return (a) certain value(s)
@@ -104,7 +104,7 @@ numbers <- 1:10
 numbers
 ```
 
-## 10.2.1 Matching a single value
+### 10.2.1 Matching a single value
 
 ```{r}
 #|label: checking the equality
@@ -125,7 +125,7 @@ animals == "gorilla"
 animals == "Gorilla"
 ```
 
-## 10.2.2 Matching multiple values
+### 10.2.2 Matching multiple values
 
 ```{r}
 #|label: in operator
@@ -137,7 +137,7 @@ animals %in% c("cat", "dog", "gorilla")
 animals %in% c("Cat", "Dog", "Gorilla")
 ```
 
-## 10.2.3 Does not match
+### 10.2.3 Does not match
 
 ```{r}
 #|label: oposite of the match
@@ -153,7 +153,7 @@ animals %in% c("Cat", "Dog", "Gorilla")
 !animals %in% c("cat", "dog", "gorilla")
 ```
 
-## 10.2.4 Greater than or less than
+### 10.2.4 Greater than or less than
 
 ```{r}
 #|label: check inequality
@@ -170,7 +170,7 @@ animals %in% c("Cat", "Dog", "Gorilla")
 numbers > 3
 ```
 
-## 10.2.5 Combining conditional statements - or, and
+### 10.2.5 Combining conditional statements - or, and
 
 -   `Condition 1 | Condition 2`
 
@@ -184,7 +184,7 @@ numbers > 3
 2 == 3 & 2 > 1
 ```
 
-# 10.3 Subsetting a data.frame
+## 10.3 Subsetting a data.frame
 
 ```{r}
 #|label: read data set into R
@@ -224,7 +224,7 @@ names(ucr)
 
     -   Only the following columns: *actual_murder*, *state*, *year*, *population*, *ori*, *agency_name*
 
-## 10.3.1 Select specific columns
+### 10.3.1 Select specific columns
 
 -   `data$column`
 
@@ -240,7 +240,7 @@ head(ucr$agency_name)
 head(ucr$actual_murder)
 ```
 
-## 10.3.2 Select specific rows
+### 10.3.2 Select specific rows
 
 -   `[row, column]`
 
@@ -303,7 +303,7 @@ head(ucr[1])
 ucr$agency_name[15]
 ```
 
-## 10.3.3 Subset Colorado data
+### 10.3.3 Subset Colorado data
 
 -   Subsetting goal for this data set:
 
@@ -313,7 +313,7 @@ ucr$agency_name[15]
 
     -   Only the following columns: actual_murder, state, year, population, ori, agency_name
 
-    ### 10.3.3.1 Subsetting using base R
+    #### 10.3.3.1 Subsetting using base R
 
 ```{r}
 #|label: Base R - Step 1. Only rows where the state equals Colorado
@@ -347,7 +347,7 @@ unique(colorado$state)
 unique(colorado$year)
 ```
 
-### 10.3.3.2 Subsetting using `dplyr`
+#### 10.3.3.2 Subsetting using `dplyr`
 
 ```{r}
 #|label: load the dplyr package

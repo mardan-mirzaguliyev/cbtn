@@ -10,7 +10,7 @@ date: 2025/07/14
 
 -   Testing data collections
 
-# 8.1 Why test your code?
+## 8.1 Why test your code?
 
 -   Mistakes:
 
@@ -43,7 +43,7 @@ example_data
 example_data[example_data$crime_type != "murder", c("year", "crime_count")]
 ```
 
-# 8.2 Unit tests
+## 8.2 Unit tests
 
 -   A unit test is simply a conditional statement where you have some input, usually a function with some parameters set, and state what you expect the result to be.
 
@@ -75,7 +75,7 @@ expect_equal(add_2(2), 5)
 
     -   **Method 3: Keyboard shortcut** Use Ctrl+Shift+T (Cmd+Shift+T on Mac) to automatically load all files and run all tests in one step. This is the quickest method but only works with R Packages, not regular R Projects.
 
-## 8.2.1 Modular test scripts
+### 8.2.1 Modular test scripts
 
 ```{r}
 #|label: load the usethis package
@@ -89,7 +89,7 @@ library(usethis)
 use_test("Test")
 ```
 
-## 8.2.2 How to write unit tests
+### 8.2.2 How to write unit tests
 
 -   **Basic Test Structure:**
 
@@ -121,7 +121,7 @@ use_test("Test")
 
 -   **Key Principle:** Tests verify that specific inputs produce expected outputs, helping ensure code works correctly, especially for data processing tasks like PDF scraping.
 
-## 8.2.3 What to test
+### 8.2.3 What to test
 
 -   **What to Test:**
 
@@ -149,7 +149,7 @@ use_test("Test")
 
     -   **Focus on value** - consider whether writing a particular test is a good use of your time
 
-### 8.2.3.1 Tests for research projects
+#### 8.2.3.1 Tests for research projects
 
 -   **Limited Testing Opportunities in Research:**
 
@@ -181,7 +181,7 @@ use_test("Test")
 
 -   **Key Principle:** Unit tests for research data are most valuable when you need to catch systematic errors in data processing or ensure consistency across changing datasets, rather than for typical one-time data analysis workflows.
 
-### 8.2.3.2 Tests for data collection
+#### 8.2.3.2 Tests for data collection
 
 -   **Key Difference from Normal Testing:**
 
@@ -219,7 +219,7 @@ use_test("Test")
 
 The core message is that data collection code requires more comprehensive testing due to the unpredictable nature of source data variations.
 
-# 8.3 Test-driven development (TDD)
+## 8.3 Test-driven development (TDD)
 
 -   **What is TDD:**
 

@@ -10,21 +10,21 @@ date: 2025/07/2025
 
 -   Title \| Author \| Default Output Format \> Ok
 
-# 7.1 Code
+## 7.1 Code
 
 Insert (or CTRL (Command) + ALT + I) \> R
 
-## 7.1.1 Hiding code in the output
+### 7.1.1 Hiding code in the output
 
 ```{r echo=FALSE}
 summary(cars)
 ```
 
-# 7.2 Inline Code
+## 7.2 Inline Code
 
 The data set mtcars has `r nrow(mtcars)` rows and `r ncol(mtcars)` columns. The mean of the mpg column is `r mean(mtcars$mpg)`.
 
-# 7.3 Tables
+## 7.3 Tables
 
 ```{r}
 #| label: load the knitr package
@@ -45,7 +45,7 @@ mtcars_small
 kable(mtcars_small, caption = "This is an example caption")
 ```
 
-# 7.4 Footnotes
+## 7.4 Footnotes
 
 -   Insert \> Footnote
 
@@ -53,15 +53,15 @@ kable(mtcars_small, caption = "This is an example caption")
 
 [^1]: This is an example of a footnote.
 
-# 7.5 Citation
+## 7.5 Citation
 
 -   Insert \> Citation
 
-# 7.6 Spell check
+## 7.6 Spell check
 
 -   ABC
 
-# 7.7 Making the output file
+## 7.7 Making the output file
 
 -   Knit \>
 

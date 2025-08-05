@@ -38,7 +38,7 @@ head(ucr2017)
 names(ucr2017)
 ```
 
-# 11.1 Summary and Table
+## 11.1 Summary and Table
 
 ```{r}
 #|label: summary statistics of numeric variables
@@ -82,7 +82,7 @@ sort(table(ucr2017$state))
 sort(table(ucr2017$state), decreasing = TRUE)
 ```
 
-# 11.2 Graphing
+## 11.2 Graphing
 
 ```{r}
 #|label: relationship between actual robbery total and actual murder per year
@@ -121,7 +121,7 @@ plot(ucr2017_big_cities$actual_murder,
      main = "Relationship between murder and robbery")
 ```
 
-# 11.3 Aggregating (summaries of groups)
+## 11.3 Aggregating (summaries of groups)
 
 -   Aggregating data means that we group values at some higher level than they currently are (e.g. from agency to state, from day to month, from city street to city neighborhood) and then do some mathematical operation of our choosing (in our case usually sum) to that group.
 
@@ -233,7 +233,7 @@ plot(x = colorado_agg$year,
      main = "Murder Rate in Colorado, 2011-2017")
 ```
 
-# 11.4 Pipes in `dplyr`
+## 11.4 Pipes in `dplyr`
 
 ```{r}
 #|label: without pipe
