@@ -1,0 +1,195 @@
+---
+title: "Reshaping Data"
+author: "Mardan Mirzaguliyev"
+format: html
+editor: visual
+date: 2025/08/05
+---
+
+```{r}
+#|label: load the tidyr, dplyr and readxl packages
+
+library(tidyr)
+library(dplyr)
+library(readxl)
+```
+
+```{r}
+#|label: read the data set into R
+
+sqf <- read_excel("data/sqf-2019.xlsx")
+```
+
+```{r}
+#|label: convert from tibble to data frame
+
+sqf <- data.frame(sqf)
+```
+
+```{r}
+#|label: print column names
+
+names(sqf)
+```
+
+```{r}
+#|label: print number of rows
+
+nrow(sqf)
+```
+
+## 13.1 Reshaping a single column
+
+```{r}
+#|label: aggregating to see number of stops, question and frisks per month and weekday
+
+sqf_agg <- sqf |> 
+  group_by(MONTH2,
+           DAY2) |> 
+  count(SUSPECT_RACE_DESCRIPTION)
+```
+
+```{r}
+#|label: view first six rows of the new data set
+
+head(sqf_agg)
+```
+
+```{r}
+#|label: check the values of the month variable
+
+unique(sqf_agg$MONTH2)
+```
+
+```{r}
+#|label: check the values of day of the week variable
+
+unique(sqf_agg$DAY2)
+```
+
+```{r}
+#|label: check the values of race description variable
+
+unique(sqf_agg$SUSPECT_RACE_DESCRIPTION)
+```
+
+```{r}
+#|label: convert the data set to wide format
+
+sqf_agg_wide <- sqf_agg |> 
+  filter(SUSPECT_RACE_DESCRIPTION != "(null)") |> 
+  pivot_wider(names_from = SUSPECT_RACE_DESCRIPTION,
+              values_from = n)
+```
+
+```{r}
+#|label: check the heading of the wide format data
+
+head(sqf_agg_wide)
+```
+
+```{r}
+#|label: load the janitor package
+
+library(janitor)
+```
+
+```{r}
+#|label: clean the variable names
+
+names(sqf_agg_wide) <- make_clean_names(names(sqf_agg_wide))
+
+names(sqf_agg_wide)
+```
+
+```{r}
+#|label: reshape the data set from wide format to long format
+
+sqf_agg_long <- sqf_agg_wide |> 
+  pivot_longer(cols = c("asian_pacific_islander", 
+                        "black",
+                        "black_hispanic",
+                        "white",
+                        "white_hispanic",
+                        "american_indian_alaskan_n"),
+               names_to = "race",
+               values_to = "number_of_people_stopped")
+```
+
+```{r}
+#|label: check the heading of the long format data
+
+head(sqf_agg_long)
+```
+
+```{r}
+#|label: colon notation to select range of columns
+
+sqf_agg_long <- sqf_agg_wide |> 
+  pivot_longer(cols = asian_pacific_islander:american_indian_alaskan_n,
+               names_to = "race",
+               values_to = "number_of_people_stopped")
+```
+
+```{r}
+#|label: check the heading of the long format data created by using colon notation
+
+head(sqf_agg_long)
+```
+
+## 13.2 Reshaping multiple columns
+
+```{r}
+#|label: create new column
+
+sqf_agg$n2 <- sqf_agg$n + 10
+```
+
+```{r}
+#|label: create new wide format data
+
+sqf_agg_wide2 <- sqf_agg |> 
+  filter(SUSPECT_RACE_DESCRIPTION != "(null)") |>
+  pivot_wider(names_from = SUSPECT_RACE_DESCRIPTION,
+              values_from = c(n, n2))
+```
+
+```{r}
+#|label: make clean variable names for the new data set
+
+names(sqf_agg_wide2) <- make_clean_names(names(sqf_agg_wide2))
+```
+
+```{r}
+#|label: check the heading of the new wide data set with extra columns
+
+head(sqf_agg_wide2)
+```
+
+```{r}
+#|label: create long format data set by reshaping multiple columns
+
+sqf_agg_long2 <- sqf_agg_wide2 |> 
+  pivot_longer(cols = c("n_asian_pacific_islander", 
+                        "n_black",
+                        "n_black_hispanic",
+                        "n_white",
+                        "n_white_hispanic",
+                        "n_american_indian_alaskan_n"),
+               names_to = "race",
+               values_to = "number_of_people_stopped") |> 
+  pivot_longer(cols = c("n2_asian_pacific_islander", 
+                        "n2_black",
+                        "n2_black_hispanic",
+                        "n2_white",
+                        "n2_white_hispanic",
+                        "n2_american_indian_alaskan_n"),
+               names_to = "race2",
+               values_to = "number_of_people_stopped2")
+```
+
+```{r}
+#|label: check the heading of the new long data set with extra columns
+
+head(sqf_agg_long2)
+```
