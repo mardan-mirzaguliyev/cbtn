@@ -89,3 +89,49 @@ temp
 ```
 
 ## 15.2 Graphing a single numeric variable
+
+```{r}
+#|label: load the ggplot2 package
+
+library(ggplot2)
+# Warning: package 'ggplot2' was built under R version 4.2.2
+```
+
+```{r}
+#|label: add data and age variable
+
+ggplot(shootings, aes(x = age))
+```
+
+### 15.2.1 Histogram
+
+-   The histogram is a very common type of graph for a single numeric variable. Histograms group a numeric variable into categories and then plot them, with the heights of each bar indicating how common the group is.
+
+```{r}
+#|label: histogram to visualize age variable - default bin parameter set to 30
+
+ggplot(shootings, aes(x = age)) +
+  geom_histogram()
+```
+
+```{r}
+#|label: set bin parameter to 15
+
+ggplot(shootings, aes(x = age)) +
+  geom_histogram(bins = 15)
+```
+
+```{r}
+#|label: set bin parameter to 45
+
+ggplot(shootings, aes(x = age)) +
+  geom_histogram(bins = 45)
+```
+
+```{r}
+#|label: display proportions instead of the number
+
+ggplot(shootings, aes(x = age)) +
+  geom_histogram(
+    aes(y = after_stat(count) / after_stat(sum(count))))
+```
