@@ -1,0 +1,91 @@
+---
+title: "More graphing with ggplot2"
+author: "Mardan Mirzaguliyev"
+format: html
+editor: visual
+date: 2025/08/10
+---
+
+```{r}
+#|label: load the readr package
+
+library(readr)
+```
+
+```{r}
+#|label: read the csv file into R and convert it from tibble to data frame
+
+shootings <- read_csv("data/fatal-police-shootings-data.csv")
+
+shootings <- as.data.frame(shootings)
+```
+
+## 15.1 Exploring data
+
+```{r}
+#|label: number of columns and rows
+
+ncol(shootings)
+
+nrow(shootings)
+```
+
+```{r}
+#|label: first 6 rows of the data set
+
+head(shootings)
+```
+
+```{r}
+#|label: summary of the date column
+
+summary(shootings$date)
+```
+
+```{r}
+#|label: frequency of the causes of death
+
+table(shootings$manner_of_death)
+```
+
+```{r}
+#|label: percentage division of the causes of death
+
+table(shootings$manner_of_death) / nrow(shootings) * 100
+```
+
+```{r}
+#|label: armed status of the victims
+
+table(shootings$armed) / nrow(shootings) * 100
+```
+
+```{r}
+#|label: sorting the results in decreasing decreasing order
+
+# get percentages of the arms the victims had
+temp <- table(shootings$armed) / nrow(shootings) * 100
+
+# sort the result in a decreasing order
+temp <- sort(temp, decreasing = TRUE)
+
+# round the results to have 2 decimal points
+temp <- round(temp, digits = 2)
+```
+
+```{r}
+#|label: genders of the victims
+
+table(shootings$gender) / nrow(shootings) * 100
+```
+
+```{r}
+#|label: race of the victims
+
+temp <- table(shootings$race) / nrow(shootings) * 100
+temp <- sort(temp)
+temp <- round(temp, digits = 2)
+temp
+```
+
+## 15.2 Graphing a single numeric variable
