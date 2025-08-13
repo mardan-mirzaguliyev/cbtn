@@ -135,3 +135,46 @@ ggplot(shootings, aes(x = age)) +
   geom_histogram(
     aes(y = after_stat(count) / after_stat(sum(count))))
 ```
+
+### 15.2.2 Density plot
+
+-   Density plots are essentially smoothed versions of histograms.
+
+-   They’re especially useful for numeric variables, which are not integers (integers are whole numbers).
+
+-   They’re also useful when you want to be more precise than a histogram as they are - to simplify - histograms where each bar is very narrow.
+
+-   Note that the y-axis of a density plot is automatically labeled “density” and has very small numbers.
+
+-   Interpreting the y-axis is fairly hard to explain to someone not familiar with statistics so I’d caution against using this graph unless your audience is already familiar with it
+
+```{r}
+#|label: density plot
+
+ggplot(shootings, aes(x = age)) +
+  geom_density()
+```
+
+### 15.2.3 Count graph
+
+-   A count graph is essentially a histogram with a bar for every value in the numeric variable - like a less-smooth density plot.
+
+-   Note that this won’t work well if you have too many unique values so I’d strongly recommend rounding the data to the nearest whole number first if you don’t already have an integer.
+
+-   Our age variable is already rounded so we don’t need to do that. To make a count graph, we add `stat_count()` to the `ggplot()`.
+
+```{r}
+#|label: count graph - a single bar for every age in the data
+
+ggplot(shootings, aes(x = age)) +
+  stat_count()
+```
+
+```{r}
+#|label: count graph - proportions
+
+ggplot(shootings, aes(x = age)) +
+  stat_count(aes(y = after_stat(count) / after_stat(sum(count))))
+```
+
+## 15.3 Graphing a categorical variable
