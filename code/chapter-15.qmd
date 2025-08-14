@@ -178,3 +178,301 @@ ggplot(shootings, aes(x = age)) +
 ```
 
 ## 15.3 Graphing a categorical variable
+
+### 15.3.1 Bar graph
+
+```{r}
+#|label: bar graph - default is alphabetical order
+
+ggplot(shootings, aes(x = race)) +
+  geom_bar()
+```
+
+```{r}
+#|label: crimes per race - in alphabetical order
+
+table(shootings$race)
+```
+
+```{r}
+#|label: crimes per race - in ascending order
+
+sort(table(shootings$race))
+```
+
+```{r}
+#|label: crimes per race - in descending order
+
+sort(table(shootings$race), decreasing = TRUE)
+```
+
+```{r}
+#|label: label of the races
+
+names(sort(table(shootings$race), decreasing = TRUE))
+```
+
+```{r}
+#|label: make the race column a factor variable
+
+shootings$race <- factor(shootings$race,
+                         levels = names(sort(table(shootings$race), decreasing = TRUE)))
+```
+
+```{r}
+#|label: rebuilding a bar plot
+
+ggplot(shootings, aes(x = race)) +
+  geom_bar()
+```
+
+-   Note that all the values that are missing in our data are still reported in the barplot under a column called “NA.”
+
+-   This is not sorted properly since there are more NA values than three of the other values, but NA is still at the far right of the graph.
+
+-   We can change this if we want to make all the NA values an actual character type and call it something like “Unknown.”
+
+```{r}
+#|label: flip coordinates - sorted from smallest to largest
+
+ggplot(shootings, aes(x = race)) +
+  geom_bar() +
+  coord_flip()
+```
+
+-   Since it’s flipped, now it’s sorted from smallest to largest.
+
+-   So we’ll need to change the `factor()` code to fix that by making the `decreasing` parameter in `sort()` FALSE.
+
+```{r}
+#|label: sorted crimes per races from largest to smallest
+
+shootings$race <- factor(shootings$race,
+                         levels = names(sort(table(shootings$race), decreasing = FALSE)))
+```
+
+```{r}
+#|label: flip coordinates - sorted crimes per races from largest to smallest
+
+ggplot(shootings, aes(x = race)) +
+  geom_bar() +
+  coord_flip()
+```
+
+-   The NA value is now at the top, which looks fairly bad.
+
+-   Let’s change all NA values to the string “Unknown”. And while we’re at it, let’s change all the abbreviated race values to actual names.
+
+```{r}
+#|label: convert race variable into character
+
+shootings$race <- as.character(shootings$race)
+```
+
+```{r}
+#| label: change NAs to unknown
+
+shootings$race[is.na(shootings$race)] <- "Unknown"
+```
+
+-   Now we can use conditional statements to change all the race letters to names. I
+
+-   t’s not clear what race “O” and “N” are so I checked [*The Washington Post’s* GitHub](https://github.com/washingtonpost/data-police-shootings) which explains what they mean. Instead of `is.na()` we’ll use `shootings$race == ""`, where we put the letter inside of the quotes.
+
+```{r}
+#|label: change race labels to actual race names
+
+shootings$race[shootings$race == "O"] <- "Other"
+shootings$race[shootings$race == "N"] <- "Native American"
+shootings$race[shootings$race == "A"] <- "Asian"
+shootings$race[shootings$race == "H"] <- "Hispanic"
+shootings$race[shootings$race == "B"] <- "Black"
+shootings$race[shootings$race == "W"] <- "White"
+```
+
+```{r}
+#|label: convert race variable to factor again
+
+shootings$race <- factor(shootings$race,
+                         levels = names(sort((table(shootings$race)), decreasing = FALSE)))
+```
+
+```{r}
+#|label: create a bar graph again
+
+ggplot(shootings, aes(x = race)) +
+  geom_bar() +
+  coord_flip()
+```
+
+```{r}
+#|label: create a bar graph for proportions
+
+ggplot(shootings, aes(x = race)) +
+  geom_bar(aes(y = after_stat(count) / after_stat(sum(count)))) +
+  coord_flip()
+```
+
+## 15.4 Graphing data over time
+
+-   We’ll need to make a variable to indicate that the row is for one shooting.
+
+-   We can call this “dummy” and assign it a value of 1.
+
+-   Then we can make the `ggplot()` and set this “dummy” column to the y-axis value and set our date variable “date” to the x-axis (the time variable is **always** on the x-axis).
+
+-   Then we’ll set the type of plot to `geom_line()` so we have a line graph showing killings over time.
+
+```{r}
+#|label: create helper column to indicate that the row is for one shooting
+
+shootings$dummy <- 1
+```
+
+```{r}
+#|label: create a line graph
+
+ggplot(shootings, aes(x = date, y = dummy)) +
+  geom_line()
+```
+
+-   This graph is clearly wrong. Why? Well, our y-axis variable is always 1 so there’s no variation to plot. Every single value, even if there are more than one shooting per day, is on the 1 line on the y-axis.
+
+-   And the fact that we have multiple killings per day is an issue because we only want a single line in our graph.
+
+-   We’ll need to aggregate our data to some time period (e.g. day, month, year) so that we have one row per time-period and know how many people were killed in that period.
+
+-   We’ll start with yearly data and then move to monthly data.
+
+```{r}
+#|label: load the lubridate package
+
+library(lubridate)
+```
+
+-   We’ll use two functions to create variables that tell us the month and the year of each date in our data. We’ll use these new variables to aggregate our data to that time unit.
+
+-   First, the `floor_date()` function is a very useful tool that essentially rounds a date.
+
+-   Here we have the exact date the killing happened on, and we want to determine what month that date is from.
+
+-   So we’ll use the parameter `unit` in `floor_date()` and tell the function we want to know the “month” (for a full set of options please see the documentation for `floor_date()` by entering `?floor_date` in the console).
+
+-   So we can do `floor_date(shootings$date, unit = "month")` to get the month - specifically, it returns the date that is the first of the month for that month - in which the killing happened.
+
+-   Even simpler, to get the year, we simply use `year()` and put our “date” variable in the parentheses. We’ll call the new variables “month_year” and “year”, respectively.
+
+```{r}
+#|label: create month and year variables
+
+shootings$month_year <- floor_date(shootings$date, unit = "month")
+shootings$year <- year(shootings$date)
+```
+
+```{r}
+#|label: check the first six values of the month_year variable
+
+head(shootings$month_year)
+```
+
+```{r}
+#|label: check the first six values of the year variable
+
+head(shootings$year)
+```
+
+```{r}
+#|label: load the dplyr package
+
+library(dplyr)
+```
+
+```{r}
+#|label: aggregate the data on month level
+
+monthly_shootings <- shootings |> 
+  group_by(month_year) |> 
+  summarize(dummy = sum(dummy))
+```
+
+```{r}
+#|label: check the first six rows of the data set
+
+head(monthly_shootings)
+```
+
+```{r}
+#|label: a line graph for monthly shootings
+
+ggplot(monthly_shootings, aes(x = month_year, y = dummy)) +
+         geom_line()
+```
+
+```{r}
+#|label: aggregate the data on year level
+
+yearly_shootings <- shootings |> 
+  group_by(year) |> 
+  summarize(dummy = sum(dummy))
+```
+
+```{r}
+#|label: a line graph for monthly shootings
+
+ggplot(yearly_shootings, aes(x = year, y = dummy)) +
+  geom_line()
+```
+
+-   Note the steep drop-off at the end of each graph. Is that due to fewer shooting occurring more recently?
+
+-   No, it’s simply an artifact of the graph comparing whole months (years) to parts of a month (year) since we haven’t finished this month (year) yet.
+
+## 15.5 Pretty graphs
+
+### 15.5.1 Themes
+
+In addition to making changes to the graph’s appearance yourself, you can use a theme that someone else made.
+
+A theme is just a collection of changes to the graph’s appearance that someone put in a function for others to use.
+
+Each theme is different and is fairly opinionated, so you should only use one that you think looks best for your graph.
+
+o use a theme, simply add the function for that theme to your ggplot using the `+` as normal. `ggplot2` comes with a series of themes that you can look at [here](https://ggplot2.tidyverse.org/reference/ggtheme.html).
+
+```{r}
+#|label: load the ggtheme package
+
+library(ggthemes)
+```
+
+```{r}
+#|label: five thirty eight theme
+
+ggplot(yearly_shootings, aes(x = year, y = dummy)) +
+  geom_line() +
+  theme_fivethirtyeight()
+```
+
+```{r}
+#|label: tufte theme
+
+ggplot(yearly_shootings, aes(x = year, y = dummy)) +
+  geom_line() +
+  theme_tufte()
+```
+
+```{r}
+#|label: few theme
+
+ggplot(yearly_shootings, aes(x = year, y = dummy)) +
+  geom_line() +
+  theme_few()
+```
+
+```{r}
+#|label: excel theme
+
+ggplot(yearly_shootings, aes(x = year, y = dummy)) +
+  geom_line() +
+  theme_excel()
+```
