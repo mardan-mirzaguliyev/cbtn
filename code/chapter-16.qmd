@@ -71,7 +71,10 @@ library(ggmap)
 ```{r}
 #|label: register stadia map api
 
-key <- "d6961837-f976-4c97-9a03-424b649c9f9a"
+
+# deleted Stadia API Key - Add before run
+# add it to R environment and include that file in .gitignore file.
+key <- "STADIA API KEY"
 
 register_stadiamaps(key = key, write = FALSE)
 ```
@@ -167,3 +170,83 @@ plot(suicide$X, suicide$Y, col = "forestgreen")
 ```
 
 ## 16.3 Making a hotspot map
+
+```{r}
+#|label: build a hotspot map with 60 bins
+
+sf_map +
+  stat_binhex(aes(x = X, y = Y),
+              bins = 60,
+              data = suicide) +
+  coord_cartesian()
+```
+
+-   From this map we can see that most areas in the city had no suicides and that the areas with the most suicides are in downtown San Francisco.
+
+```{r}
+#|label: build a hotspot map with 30 bins
+
+sf_map +
+  stat_bin_hex(aes(x = X, y = Y),
+               bins = 30,
+               data = suicide) +
+  coord_cartesian()
+```
+
+-   Each bin is much larger and covers nearly all of San Francisco.
+
+-   Be careful with maps like these!
+
+-   This map is so broad that it appears that suicides are ubiquitous across the city.
+
+-   We know from the map showing each suicide as a dot that there are fewer than 1,300 suicides; thus this is not true.
+
+-   Maps like this make it easy to mislead the reader, including yourself!
+
+```{r}
+#|label: build a hotspot map with 100 bins
+
+sf_map +
+  stat_bin_hex(aes(x = X, y = Y),
+               bins = 100,
+               data = suicide) +
+  coord_cartesian()
+```
+
+-   Now each bin is very small and a much smaller area in San Francisco has had a suicide. So what is the right number of bins to use?
+
+-   There is no correct universal answer - you must decide what the goal is with the data you are using.
+
+-   This opens up serious issues for manipulation - intentional or not - of the data as the map is so easily changeable without ever changing the data itself.
+
+### 16.3.1 Colors
+
+-   To change the bin colors we can use the parameter `scale_fill_gradient()`.
+
+-   This accepts a color for “low,” which is when the events are rare, and “high” for the bins with frequent events.
+
+-   We’ll use colors from [ColorBrewer,](http://colorbrewer2.org/) selecting the yellow-reddish theme (“3-class YlOrRd”) from the Multi-hue section of the “sequential” data part of the page.
+
+```{r}
+#|label: coloring the maps
+
+sf_map +
+  stat_bin_hex(aes(x = X, y = Y),
+               bins = 60,
+               data = suicide) +
+  coord_cartesian() +
+  scale_fill_gradient(low = "#ffeda0", high = "#f03b20")
+```
+
+```{r}
+#|label: relabel the legend
+
+sf_map +
+  stat_bin_hex(aes(x = X, y = Y), 
+               bins = 60,
+               data = suicide) +
+  coord_cartesian() +
+  scale_fill_gradient("Suicides",
+                      low = "#ffeda0",
+                      high = "#f03b20")
+```
