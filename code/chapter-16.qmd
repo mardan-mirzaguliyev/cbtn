@@ -69,12 +69,37 @@ library(ggmap)
 -   You can copy those numbers into `get_map()`
 
 ```{r}
-#|label: register stadia map api
+#|label: load the usethis package
 
+library(usethis)
+```
 
-# deleted Stadia API Key - Add before run
-# add it to R environment and include that file in .gitignore file.
-key <- "STADIA API KEY"
+```{r}
+#|label: create .Renviron file
+
+# Create/edit .Renviron file
+edit_r_environ("project")
+```
+
+```{r}
+#|label: load the API key
+
+# Get API key
+key <- Sys.getenv("STADIAMAPS_API_KEY")
+```
+
+```{r}
+#|label: check if the key was loaded
+
+if(key == "") {
+  stop("STADIAMAPS_API_KEY not found in .Renviron file")
+} else {
+  cat("API key loaded successfully!\n")
+}
+```
+
+```{r}
+#|label: Register API key
 
 register_stadiamaps(key = key, write = FALSE)
 ```
@@ -90,6 +115,8 @@ ww_map <- ggmap(get_stadiamap(c(20.8487, 52.1409, 21.2683, 52.3146),
 ```
 
 ```{r}
+#|label: San-Fransisco map
+
 sf_map <- ggmap(get_stadiamap(c(-122.530392, 37.698887, -122.351177, 37.812996),
                             zoom = 12,
                             source = "stadia"))
