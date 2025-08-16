@@ -1,0 +1,169 @@
+---
+title: "Hotspot maps"
+author: "Mardan Mirzaguliyev"
+format: html
+editor: visual
+date: 2025/08/16
+---
+
+-   Hotspot maps are used to find where events or places (e.g. crimes, marijuana dispensaries, liquors stores) are especially prevalent.
+
+-   These maps are frequently used by police departments, particularly in determining where to do hotspot policing (which focuses patrols on high-crime areas).
+
+-   However, there are significant flaws with these kinds of maps.
+
+-   As we’ll see during this lesson, minor changes to how we make the maps can cause significant differences in interpretation.
+
+-   For example, determining the size of the clusters that make up the hotspots can make it seem like there are much larger or smaller areas with hotspots than there actually are.
+
+```{r}
+#|labe: load the readr package
+
+library(readr)
+```
+
+```{r}
+#|label: read the data set into R
+
+library(readr)
+suicide <- read_csv("data/san_francisco_suicide_2003_2017.csv")
+suicide <- as.data.frame(suicide)
+```
+
+The columns X and Y are our longitude and latitude columns, which we will use to map the data.
+
+```{r}
+#|label: first six rows of the data
+
+head(suicide)
+```
+
+## 16.1 A simple map
+
+```{r}
+#|label: load the ggmap package
+
+library(ggmap)
+```
+
+-   We’ll start by making the background to our map, showing San Francisco.
+
+-   We do so by using the `get_map()` function from `ggmap`, which gets a map background from a number of sources.
+
+-   We’ll set the source to “stamen” since Google no longer allows us to get a map without creating an account.
+
+-   The first parameter in `get_map()` is simply coordinates for San Francisco’s bounding box to ensure we get a map of the right spot.
+
+-   A bounding box is four coordinates that connect to make a rectangle, used for determining where in the world to show.
+
+-   An easy way to find the four coordinates for a bounding box is to go to the site [Bounding Box.](https://boundingbox.klokantech.com/)
+
+-   This site has a map of the world and a box on the screen.
+
+-   Move the box to the area you want the map of.
+
+-   You may need to resize the box to cover the area you want. Then in the section that says “Copy & Paste,” change the dropdown box to “CSV.”
+
+-   In the section to the right of this are the four numbers that make up the bounding box.
+
+-   You can copy those numbers into `get_map()`
+
+```{r}
+#|label: register stadia map api
+
+key <- "d6961837-f976-4c97-9a03-424b649c9f9a"
+
+register_stadiamaps(key = key, write = FALSE)
+```
+
+```{r}
+#|label: Warsaw map - side map not related to the chapter
+
+ww_map <- ggmap(get_stadiamap(c(20.8487, 52.1409, 21.2683, 52.3146),
+                              zoom = 12,
+                              source = "stadia"))
+
+# ℹ © Stadia Maps © Stamen Design © OpenMapTiles © OpenStreetMap contributors.
+```
+
+```{r}
+sf_map <- ggmap(get_stadiamap(c(-122.530392, 37.698887, -122.351177, 37.812996),
+                            zoom = 12,
+                            source = "stadia"))
+# ℹ © Stadia Maps © Stamen Design © OpenMapTiles © OpenStreetMap contributors.
+```
+
+-   Let’s plot the suicides from our data set. Just as with a scatterplot we use the `geom_point()` function from the `ggplot2` package and set our longitude and latitude variables on the x- and y-axis, respectively.
+
+-   When we load `ggmap` it also automatically loads `ggplot2` as that package is necessary for `ggmap` to work, so we don’t need to do `library(ggplot2)` ourselves.
+
+```{r}
+#|label: plot the suicides
+
+sf_map +
+  geom_point(aes(x = X, y = Y), data = suicide)
+```
+
+```{r}
+#|label: color the dots
+
+sf_map +
+  geom_point(aes(x = X, y = Y), data = suicide, color = "forestgreen")
+```
+
+```{r}
+#|label: change the size of the dots - 0.5
+
+sf_map +
+  geom_point(aes(x = X, y = Y),
+             data = suicide,
+             color = "forestgreen",
+             size = 0.5)
+```
+
+```{r}
+#|label: change the size of the dots - 2
+
+sf_map +
+  geom_point(aes(x = X, y = Y),
+             data = suicide,
+             color = "forestgreen",
+             size = 2)
+```
+
+-   For maps like this - with one point per event - it is hard to tell if any events happen on the same, or nearly the same, location as each point is solid green.
+
+-   We want to make the dots semi-transparent so if multiple suicides happen at the same place that dot will be shaded darker than if only one suicide happened there.
+
+-   To do so we use the parameter `alpha =` which takes an input between 0 and 1 (inclusive). The lower the value the more transparent it is.
+
+```{r}
+#|label: make the dots semi-transparent
+
+sf_map +
+  geom_point(aes(x = X, y = Y),
+             data = suicide,
+             color = "forestgreen",
+             size = 2,
+             alpha = 0.5)
+```
+
+## 16.2 What really are maps?
+
+-   I made the following simple scatterplot of our data with one dot per suicide (minus the one without coordinates).
+
+-   Compare this to the previous map and you’ll see that they are the same except the map has a useful background while the plot has a blank background.
+
+-   That is all static maps are (in Chapter [18](https://crimebythenumbers.com/interactive-maps.html#interactive-maps) we’ll learn about interactive maps), scatterplots of coordinates overlayed on a map background. Basically, they are scatterplots with context.
+
+-   And this context is useful; we can interpret the map to see that there are lots of suicides in the northeast part of San Francisco but not so many elsewhere, for example.
+
+-   The exact same pattern is present in the scatterplot but without the ability to tell “where” a dot is.
+
+```{r}
+#|label: make a scatter plot of suicides
+
+plot(suicide$X, suicide$Y, col = "forestgreen")
+```
+
+## 16.3 Making a hotspot map
