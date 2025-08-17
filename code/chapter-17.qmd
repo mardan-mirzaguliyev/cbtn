@@ -1,0 +1,394 @@
+---
+title: "Choropleth maps"
+author: "Mardan Mirzaguliyev"
+format: html
+editor: visual
+date: 2025/08/17
+---
+
+### STEP 1: LOAD THE NECESSARY PACKAGES AND DATA
+
+-   san_francisco_suicide_2003_2017.csv
+
+-   san_francisco_neighborhoods.shp
+
+```{r}
+#|label: load the readr package
+
+library(readr)
+```
+
+```{r}
+#|label: read the data set into R
+
+suicide <- read_csv("data/san_francisco_suicide_2003_2017.csv")
+suicide <- as.data.frame(suicide)
+```
+
+-   The package that we will use to handle geographic data and do most of the work in this chapter is `sf`.
+
+-   `sf` is a sophisticated package and does far more than what we will cover in this chapter. For more information about the package’s features please see the website for it [here.](http://r-spatial.github.io/sf/)
+
+```{r}
+#|label: load the sf package
+
+library(sf)
+```
+
+-   Simple Features, as defined by the [**OGC standard**](https://www.ogc.org/standards/sfa/), is **a widely adopted standard for representing and handling geographic features in spatial databases and Geographic Information Systems (GIS)**. It provides a consistent framework for spatial data storage, exchange, and analysis, ensuring interoperability between different systems. 
+
+    **Here's a breakdown of key aspects:**
+
+    -   **What it is:**
+
+        Simple Features defines how geographic objects (like points, lines, polygons) are represented in a computer, including their spatial geometry and associated attributes. 
+
+-   **Why it's important:** It enables different software and databases to work with spatial data in a standardized way, promoting data sharing and preventing vendor lock-in. 
+
+-   **Key components:**
+
+    -   **Geometry:** Represents the spatial location and shape of a feature (e.g., a point, line, polygon). 
+
+    -   **Attributes:** Describe other characteristics of the feature, such as its name, ID, or other properties
+
+-   For this chapter we will need to read in a shapefile that depicts the boundaries of each neighborhood in San Francisco.
+
+-   A shapefile is similar to a data.frame but has information on how to draw a geographic boundary such as a state.
+
+-   The way `sf` reads in the shapefiles is through the `st_read()` function.
+
+-   Our input inside the () is a string with the name of the “.shp” file we want to read in (since we are telling R to read a file on the computer rather than an object that exists, it needs to be in quotes).
+
+-   This shapefile contains neighborhoods in San Francisco so we’ll call the object *sf_neighborhoods*.
+
+-   Downloaded this data from San Francisco’s Open Data site [here,](https://data.sfgov.org/Geographic-Locations-and-Boundaries/Analysis-Neighborhoods/p5b7-5n3h) selecting the Shapefile format in the Export tab.
+
+-   If you do so yourself it’ll give you a zip file with multiple files in there.
+
+-   This is normal with shapefiles, you will have multiple files and only read in the file with the “.shp” extension to R.
+
+-   We still **do** need all of the files, and `st_read()` is using them even if not explicitly called. So make sure every file downloaded is in the same working directory as the .shp file.
+
+```{r}
+#|label: load San Francisco shape file into R
+
+sf_neighborhoods <- st_read("data/san_francisco_neighborhoods.shp",
+                            quiet = TRUE)
+```
+
+```{r}
+#|label: check the first 6 rows of the shape file object
+
+head(sf_neighborhoods)
+```
+
+-   The last column is important. In shapefiles, the “geometry” column is the one with the instructions to make the map.
+
+-   This data has a single row for each neighborhood in the city. So the “geometry” column in each row has a list of coordinates, which, if connected in order, make up that neighborhood.
+
+-   Since the “geometry” column contains the instructions to map, we can `plot()` it to show a map of the data.
+
+### STEP 2: GET FAMILIAR WITH MAP PROJECTING IN GENERAL AND SIMPLE FEATURES PACKAGE IN R
+
+```{r}
+#|label: check first 6 rows the geometry column
+
+head(sf_neighborhoods$geometry)
+```
+
+```{r}
+#|label: plot the negighborhoods map
+
+plot(sf_neighborhoods$geometry)
+```
+
+-   Read a bit about how San Francisco determined the neighborhood boundaries [here,](https://data.sfgov.org/Geographic-Locations-and-Boundaries/Analysis-Neighborhoods/p5b7-5n3h) but know that this, like all geographic areas that someone has designated, has some degree of inaccuracy and arbitrariness in it.
+
+-   EPSG stands for the **European Petroleum Survey Group**. It's a database of geodetic parameters, including coordinate reference systems, datums, and transformations, identified by unique numerical codes called EPSG codes. These codes are widely used in geographic information systems (GIS) and mapping to specify the coordinate system and related parameters of spatial data.
+
+-   **Here's a more detailed explanation:**
+
+    -   **What is it?:** The EPSG database, now maintained by the IOGP Geomatics Committee, provides a standardized way to represent and manage spatial data information. 
+
+    -   **EPSG Codes:** Each entry in the database is assigned a unique EPSG code (e.g., EPSG:4326 for WGS84). These codes are used to identify specific coordinate reference systems (CRSs), datums, and transformations. 
+
+    -   **Coordinate Reference Systems (CRSs):** A CRS defines how geographic coordinates (latitude and longitude) are projected onto a 2D plane. EPSG codes help specify which projection is used. 
+
+    -   **Importance:** Using EPSG codes ensures that spatial data is correctly interpreted and displayed, regardless of the software or platform used. 
+
+    -   **Example:** If you have a map with geographic coordinates, knowing its EPSG code (e.g., EPSG:4326) ensures that the coordinates are interpreted correctly as latitude and longitude on the WGS84 datum. 
+
+    -   **Where to find them: [EPSG.io](https://epsg.io/)** is a website that provides a comprehensive list of EPSG codes and their associated information.
+
+-   geodesy - the branch of mathematics dealing with the shape and area of the earth or large portions of it.
+
+```{r}
+#|label: check EPSG code of the shape file objecet
+
+st_crs(sf_neighborhoods)
+```
+
+-   WGS84, or World Geodetic System 1984, is **a standard geodetic datum used in cartography, geodesy, and satellite navigation, including GPS**. It defines a coordinate system and a geodetic reference frame for accurately determining positions on Earth. WGS84 is also the reference system for GPS and is widely used in various mapping and navigation applications.
+
+-   GPS, or Global Positioning System, is **a satellite-based navigation system that provides location, velocity, and time information to users worldwide**. It relies on a network of satellites orbiting the Earth, ground stations for monitoring and control, and GPS receivers that interpret signals from the satellites.
+
+-   To find the CRS for certain parts of the world see [here.](https://spatialreference.org/)
+
+-   If you search that site for “California,” you’ll see that California is broken into 6 zones. The site isn’t that helpful on which zones are which, but some Googling can often find state or region maps with the zones depicted there. We want California zone 3, which has the EPSG code 2227. We’ll use this code to project this data properly.
+
+```{r}
+#|label: get California zone 3 proj4string
+
+st_crs(2227)
+```
+
+### STEP 3: CONVERT THE NEIGHBORHOODS DATA TO CRS 2227
+
+```{r}
+#|label: convert sf_neighborhoods data to CRS
+
+sf_neighborhoods <- st_transform(sf_neighborhoods, crs = 2227)
+st_crs(sf_neighborhoods)
+```
+
+## 17.1 Spatial joins
+
+What we want to do with these neighborhoods is to find out which neighborhood each suicide occurred in and sum up the number of suicides per neighborhood.
+
+Once we do that, we can make a map at the neighborhood level and be able to measure suicides per neighborhood.
+
+A spatial join is very similar to regular joins where we merge two data sets based on common variables (such as state name or unique ID code of a person).
+
+In this case it merges based on some shared geographic feature such as if two lines intersect or (as we will do so here) if a point is within some geographic area.
+
+### STEP 4: CONVERT SUICIDE DATA INTO A SPATIAL OBJECT
+
+```{r}
+#|label: convert a data frame into a spatial object
+
+suicide <- st_as_sf(
+  suicide,
+  coords = c("X", "Y"),
+  crs = "+proj=longlat +ellps=WGS84 +no_defs"
+)
+```
+
+### STEP 5: CONVERT THE PROJECTION OF THE SUICIDE DATA TO MATCH WITH THE PROJECTION OF THE NEIGHBORHOODS DATA
+
+```{r}
+#|label: set the projection of the suicide data to be the same as neighbourshoods data
+
+suicide <- st_transform(suicide,
+                        crs = st_crs(sf_neighborhoods))
+```
+
+### STEP 6: CHECK THE PROJECTIONS OF BOTH DATA AGAIN
+
+```{r}
+#|label: check the first 6 rows of the suicide data to see the change - Projected CRS: NAD83 / California zone 3 (ftUS)
+
+head(suicide)
+```
+
+```{r}
+#|label: check the first 6 rows of neighborhoods data - Projected CRS: NAD83 / California zone 3 (ftUS)
+
+head(sf_neighborhoods)
+```
+
+-   We can see it is now a “simple feature collection” with the correct projection. And we can see there is a new column called “geometry” just like in *sf_neighborhoods*.
+
+-   The type of data in “geometry” is POINT since our data is just a single location instead of a polygon like in the neighborhoods data.
+
+### STEP 7: PLOT BOTH DATA
+
+```{r}
+#|label: plot both data
+
+plot(sf_neighborhoods$geometry)
+plot(suicide$geometry, add = TRUE, col = "red")
+```
+
+### STEP 8: FIGURE OUT HOW MANY SUICIDES OCCURED IN EACH NEIGHBORHOOD
+
+Our next step is to combine these two data sets to figure out how many suicides occurred in each neighborhood. This will be a multi-step process so let’s plan it out before beginning. Our suicide data is one row for each suicide; our neighborhood data is one row for each neighborhood. Since our goal is to map at the neighborhood-level we need to get the neighborhood where each suicide occurred then aggregate up to the neighborhood-level to get a count of the suicides-per-neighborhood. Then we need to combine that with the original neighborhood data, and we can map it.
+
+1.  Find which neighborhood each suicide happened in
+
+2.  Aggregate suicide data until we get one row per neighborhood and a column showing the number of suicides in that neighborhood
+
+3.  Combine with the neighborhood data
+
+4.  Make a map
+
+We’ll start by finding the neighborhood where each suicide occurred using the function `st_join()`, which is a function in `sf`. This does a spatial join and finds the polygon (neighborhood in our case) where each point is located in. Since we will be aggregating the data, let’s call the output of this function *suicide_agg*. The order in the () is important! For our aggregation we want the output to be at the suicide-level so we start with the *suicide* data. In the next step we’ll see why this matters.
+
+#### **1. Find which neighborhood each suicide happened in**
+
+```{r}
+#|label: merge data sets
+
+suicide_agg <- st_join(suicide, sf_neighborhoods)
+```
+
+```{r}
+#|label: check the first 6 rows of the new data set
+
+head(suicide_agg)
+```
+
+#### 2. Aggregate suicide data until we get one row per neighborhood and a column showing the number of suicides in that neighborhood
+
+```{r}
+#|label: create a column to calculate aggregations
+
+suicide_agg$number_suicides <- 1 
+```
+
+```{r}
+#|label: load the readr package
+
+library(dplyr)
+```
+
+```{r}
+#|label: find the number of suicides per neighborhood
+
+suicide_agg <- suicide_agg |> 
+  group_by(nhood) |> 
+  summarize(number_suicides = sum(number_suicides))
+```
+
+```{r}
+#|label: check a summary of the number_suicides variables
+
+summary(suicide_agg$number_suicides)
+```
+
+```{r}
+#|label: number of rows in the aggregated data
+
+nrow(suicide_agg)
+```
+
+```{r}
+#|label: number of rows in neighborhood data
+
+nrow(sf_neighborhoods)
+```
+
+The suicides data is missing 2 neighborhoods (one of the 40 values is missing and is NA, not a real neighborhood). That is because if no suicides occurred there, there would never be a matching row in the data so that neighborhood wouldn’t appear in the suicide data.
+
+#### 3. Combine the aggregated data with the neighborhood data
+
+-   `left_join(data1, data2)`
+
+-   There are two other functions that are similar but differ based on which rows they keep.
+
+    -   `left_join()` - All rows from Left data and all columns from Left and Right data
+
+    -   `right_join()` - All rows from Right data and all columns from Left and Right data
+
+    -   `full_join()` - All rows and all columns from Left and Right data
+
+We don’t need the spatial data for “suicide_agg” anymore, and it will cause problems with our join if we keep it, so let’s delete the “geometry” column from that data. We can do this by assigning the column the value of NULL.
+
+```{r}
+#|label: delete the geometry column from the aggregated data
+
+suicide_agg$geometry <- NULL
+```
+
+```{r}
+#|label: join the aggregated data with neighborhood data
+
+sf_neighborhoods_suicide <- left_join(sf_neighborhoods, suicide_agg)
+```
+
+```{r}
+#|label: summary of the number of suicides
+
+summary(sf_neighborhoods_suicide$number_suicides)
+```
+
+```{r}
+#|label: convert NAs to 0
+
+sf_neighborhoods_suicide$number_suicides[
+  is.na(sf_neighborhoods_suicide$number_suicides)] <- 0
+```
+
+```{r}
+#|label: summary of the number of suicides after setting NAs to 0
+
+summary(sf_neighborhoods_suicide$number_suicides)
+```
+
+#### 4. Make a map - NEXT SECTION
+
+## 17.2 Making choropleth maps
+
+```{r}
+#|label: load the ggplot2 package
+
+library(ggplot2)
+```
+
+```{r}
+#|label: make a choropleth map - light blue have the most suicides while neighborhoods that are dark blue have the fewest (or none at all)
+
+ggplot(sf_neighborhoods_suicide, aes(fill = number_suicides)) +
+  geom_sf()
+```
+
+```{r}
+#|label: make a choropleth map - white - low, red - high
+
+ggplot(sf_neighborhoods_suicide, aes(fill = number_suicides)) +
+  geom_sf() +
+  scale_fill_gradient(low = "white",
+                      high = "red")
+```
+
+```{r}
+#|label: make a choropleth map - change a title and legend
+
+ggplot(sf_neighborhoods_suicide,
+       aes(fill = number_suicides)) +
+  geom_sf() +
+  scale_fill_gradient(low = "white",
+                      high = "red") +
+  labs(fill = "# of suicides",
+       title = "Suicides in San Francisco, by neighborhood",
+       subtitle = "2003 - 2017")
+```
+
+```{r}
+#|label: make a choropleth map - remove coordinates
+
+ggplot(sf_neighborhoods_suicide,
+       aes(fill = number_suicides)) +
+  geom_sf() +
+  scale_fill_gradient(low = "white",
+                      high = "red") +
+  labs(fill = "# of suicides",
+       title = "Suicides in San Francisco, by neighborhood",
+       subtitle = "2003 - 2017") +
+  theme(axis.text.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.ticks = element_blank())
+```
+
+-   So what should we take away from this map? There are more suicides in the downtown area than any other place in the city.
+
+-   Does this mean that people are more likely to kill themselves there than elsewhere? Not necessarily. A major mistake people make when making a choropleth map (or really any type of map) is accidentally making a population map.
+
+-   The darker shaded parts of our map are also where a lot of people live. So if there are more people, it is reasonable that there would be more suicides (or crimes, etc.).
+
+-   What we’d really want to do is make a rate per some population (usually per 100k though this assumes equal risk for every person in the city which isn’t really correct) to control for population differences.
+
+```{r}
+#|label: save the joined data set
+
+save(sf_neighborhoods_suicide, file = "data/sf_neighborhoods_suicide.rda")
+```
