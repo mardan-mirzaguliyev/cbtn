@@ -1,0 +1,42 @@
+---
+title: "Interactive maps"
+author: "Mardan Mirzaguliyev"
+format: html
+editor: visual
+date: 2025/08/18
+---
+
+-   Data:
+
+    -   san_francisco_marijuana_geocoded.csv
+
+    -   sf_neighborhoods_suicide.rda.
+
+```{r}
+#|label: load the readr package
+
+library(readr)
+```
+
+```{r}
+#|label: read the data into R
+
+marijuana <- read_csv("data/san_francisco_marijuana_geocoded.csv")
+marijuana <- as.data.frame(marijuana)
+```
+
+## 18.1 Why do interactive graphs matter?
+
+### 18.1.1 Understanding your data
+
+-   The most important thing to learn from this book is that understanding your data is crucial to good research.
+
+-   Making interactive maps is a very useful way to better understand your data as you can immediately see geographic patterns and quickly look at characteristics of those incidents to understand them.
+
+### 18.1.2 Police departments use them
+
+-   Interactive maps are popular in large police departments, such as Philadelphia and New York City.
+
+-   They allow easy understanding of geographic patterns in the data and, importantly, allow such access to people who do not have the technical skills necessary to interact with the data itself.
+
+## 18.2 Making the interactive map
