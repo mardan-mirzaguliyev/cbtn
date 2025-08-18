@@ -40,3 +40,111 @@ marijuana <- as.data.frame(marijuana)
 -   They allow easy understanding of geographic patterns in the data and, importantly, allow such access to people who do not have the technical skills necessary to interact with the data itself.
 
 ## 18.2 Making the interactive map
+
+```{r}
+#|label: check the first 6 rows of data
+
+head(marijuana)
+```
+
+```{r}
+#|label: load the leaflet package
+
+library(leaflet)
+```
+
+```{r}
+#|label: create the first map - world map
+
+leaflet() |> 
+  addTiles()
+```
+
+```{r}
+#|label: display marijuana dispensaries in San Francisco
+
+leaflet() |> 
+  addTiles() |> 
+  addMarkers(lng = marijuana$long,
+             lat = marijuana$lat)
+```
+
+```{r}
+#|label: change icons to circles
+
+leaflet() |> 
+  addTiles() |> 
+  addCircleMarkers(lng = marijuana$long,
+                   lat = marijuana$lat)
+```
+
+```{r}
+#|label: change size of circles
+
+leaflet() |> 
+  addTiles() |> 
+  addCircleMarkers(lng = marijuana$long,
+                   lat = marijuana$lat,
+                   radius = 5)
+```
+
+## 18.3 Adding popup information
+
+```{r}
+#|label:
+
+leaflet() |> 
+  addTiles() |> 
+  addCircleMarkers(lng = marijuana$long,
+                   lat = marijuana$lat,
+                   radius = 5,
+                   popup = marijuana$Business_Owner)
+```
+
+```{r}
+#|label: add a descriptive text before business owner
+
+leaflet() |> 
+  addTiles() |> 
+  addCircleMarkers(lng = marijuana$long,
+                   lat = marijuana$lat,
+                   radius = 5,
+                   popup = paste("Business Owner:", 
+                                 marijuana$Business_Owner))
+```
+
+```{r}
+#|label: add the address and license to the popup
+
+leaflet() |> 
+  addTiles() |> 
+  addCircleMarkers(lng = marijuana$long,
+                   lat = marijuana$lat,
+                   radius = 5,
+                   popup = paste("Business Owner:",
+                                 marijuana$Business_Owner,
+                                 "Address:",
+                                 marijuana$Premise_Address,
+                                 "License:",
+                                 marijuana$License_Number))
+```
+
+```{r}
+#|label: add line breaks to the popup
+
+leaflet() |> 
+  addTiles() |> 
+  addCircleMarkers(lng = marijuana$long,
+                   lat = marijuana$lat,
+                   radius = 5,
+                   popup = paste("Business Owner:",
+                                 marijuana$Business_Owner,
+                                 "<br>",
+                                 "Address:",
+                                 marijuana$Premise_Address,
+                                 "<br>",
+                                 "License:",
+                                 marijuana$License_Number))
+```
+
+## 18.4 Dealing with too many markers
