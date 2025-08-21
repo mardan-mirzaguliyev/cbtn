@@ -91,7 +91,7 @@ leaflet() |>
 ## 18.3 Adding popup information
 
 ```{r}
-#|label:
+#|label: adding popup
 
 leaflet() |> 
   addTiles() |> 
