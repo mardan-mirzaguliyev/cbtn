@@ -7,14 +7,16 @@ date: 2025/08/23
 ---
 
 ```{r}
-#|label: load the rvest package
+#|label: load the rvest and jsonlite packages
 
 library(rvest)
 ```
 
 -   [**MMMMM... Brownies**](https://www.allrecipes.com/recipe/25080/mmmmm-brownies/)
 
-## 19.1 Scraping one page
+## 19.1 and 19.2 Scraping and cleaning the webscarepd data one page
+
+### ALL STEPS MERGED BECAUSE OF THE CHANGE OF THE HTML STRUCTURE
 
 ```{r}
 #|label: read html structure of the web page
@@ -28,18 +30,16 @@ brownies <- read_html("https://www.allrecipes.com/recipe/25080/mmmmm-brownies/")
 
 -   Install that extension in Chrome and go to the [brownie recipe page.](https://www.allrecipes.com/recipe/25080/mmmmm-brownies/?internalSource=hub%20recipe&referringContentType=Search)
 
-### STEP 1. Get html nodes using CSS selector
+#### 1. Get and clean ingredients data
 
 ```{r}
-#|label: get ingredients of the pastry
+#|label: Get html nodes using CSS selector
 
-ingredients <- html_nodes(brownies, 'span[data-ingredient-name="true"]')
+ingredients <- html_nodes(brownies, ".mm-recipes-structured-ingredients__list")
 ```
 
-### STEP 2. Load the data as a text
-
 ```{r}
-#|label: express the format of the scraped data for ingredients - text
+#|label: load the data as a text
 
 ingredients <- html_text(ingredients)
 ```
@@ -50,15 +50,51 @@ ingredients <- html_text(ingredients)
 ingredients
 ```
 
-### STEP 3. Use the same process to get the directions for baking - Get html nodes using CSS selector
+```{r}
+#|label: remove spaces
+
+ingredients <- trimws(ingredients)
+ingredients
+```
+
+```{r}
+#|label: remove \n characters from m 
+
+ingredients <- gsub("\n\n\n", " ", ingredients)
+ingredients
+```
+
+```{r}
+#|label: split at measurement patterns
+ingredients <- gsub("\\s+(\\d+\\s+tablespoons?)\\s+", "\n\\1 ", ingredients)
+ingredients <- gsub("\\s+(\\d+\\s+½\\s+cups?)\\s+", "\n\\1 ", ingredients)
+ingredients <- gsub("\\s+(\\d+\\s+large)\\s+", "\n\\1 ", ingredients)
+ingredients <- gsub("\\s+(½\\s+teaspoon)\\s+", "\n\\1 ", ingredients)
+ingredients <- gsub("\\s+(⅔\\s+cup)\\s+", "\n\\1 ", ingredients)
+ingredients <- gsub("\\s+(¼\\s+teaspoon)\\s+", "\n\\1 ", ingredients)
+```
+
+```{r}
+#|label: split vecvor elements using newline
+ingredients <- strsplit(ingredients, "\n")[[1]]
+ingredients
+```
+
+```{r}
+#|label: display ingredients in better format
+
+for(i in 1:length(ingredients)) {
+  cat(i, ".", ingredients[i], "\n")
+}
+```
+
+#### 2. Get and clean directions data
 
 ```{r}
 #|label: get directions for baking
 
-directions <- html_nodes(brownies, '.mntl-sc-block-group--LI .mntl-sc-block')
+directions <- html_nodes(brownies, '#mntl-sc-block_1-0')
 ```
-
-### STEP 4. Load the data as a text
 
 ```{r}
 #|label: express the format of the scraped data for baking directions - text
@@ -72,99 +108,52 @@ directions <- html_text(directions)
 directions
 ```
 
-## 19.2 Cleaning the webscraped data
-
-### STEP 5. Clean the webscraped data
-
 ```{r}
-#|label: remove spaces
+#|label: remove image caption
 
-ingredients <- trimws(ingredients)
-directions <- trimws(directions)
+directions <- gsub("Dotdash Meredith Food Studios", "", directions, ignore.case = TRUE)
+directions
 ```
 
 ```{r}
-#|label: check ingredients data for spaces
+#|label: remove excessive newlines and spaces
 
-ingredients
-```
-
-```{r}
-#|label: check directions data for spaces
+directions <- gsub("\\n+", " ", directions)  # Replace newlines with spaces
+directions <- gsub("\\s+", " ", directions)  # Replace multiple spaces with single
+directions <- trimws(directions)             # Remove leading/trailing spaces
 
 directions
 ```
 
 ```{r}
-#|label: remove spaces between the step number and the instructions
+#|label: split only at major cooking action words
 
-directions <- gsub(" {2,}", "", directions)
+major_cooking_actions <- c("Gather", "Preheat", "Combine sugar", "Bake", "Let cool")
+action_pattern <- paste0("(?<=\\.)\\s+(?=", paste(major_cooking_actions, collapse = "|"), ")")
+steps <- strsplit(directions, action_pattern, perl = TRUE)[[1]]
+
+steps
 ```
 
 ```{r}
-#|label: final check for directions
+#|label: clean and filter steps
 
+steps <- trimws(steps)
+steps <- steps[nchar(steps) > 15]  # Keep only meaningful steps
+steps
+```
+
+```{r}
+#|label: add step numbers
+directions <- paste0("Step ", 1:length(steps), ": ", steps)
 directions
 ```
 
 ```{r}
-#|label: AI generated code for correct webscraping of ingredients data
 
-library(rvest)
-library(jsonlite)
+#|label: display results
 
-# Get the page
-page <- read_html("https://www.allrecipes.com/recipe/25080/mmmmm-brownies/")
-
-# Look for JSON-LD structured data
-json_scripts <- html_nodes(page, 'script[type="application/ld+json"]')
-
-# Extract recipe data
-if(length(json_scripts) > 0) {
-  recipe_data <- fromJSON(html_text(json_scripts[[1]]))
-  
-  # Get full ingredients with quantities
-  full_ingredients <- recipe_data$recipeIngredient
-  print(full_ingredients)
-  
-  # Get directions too
-  directions <- recipe_data$recipeInstructions$text
-  print(directions)
+for(i in 1:length(directions)) {
+  cat(directions[i], "\n\n")
 }
-```
-
-```{r}
-# Clean your existing directions to remove image captions
-clean_directions <- function(directions) {
-  # Remove short text (likely captions)
-  directions <- directions[nchar(directions) > 20]
-  
-  # Remove obvious image captions
-  directions <- directions[!grepl("^(Photo|Image|Step \\d+ photo)", directions, ignore.case = TRUE)]
-  
-  # Keep only text with cooking words
-  cooking_keywords <- c("mix", "add", "stir", "bake", "cook", "heat", "pour", "combine", "whisk", "fold", "preheat", "grease", "beat", "blend")
-  
-  valid_directions <- c()
-  for(direction in directions) {
-    has_cooking_word <- any(sapply(cooking_keywords, function(keyword) {
-      grepl(keyword, direction, ignore.case = TRUE)
-    }))
-    
-    if(has_cooking_word || nchar(direction) > 50) {
-      valid_directions <- c(valid_directions, direction)
-    }
-  }
-  
-  # Add step numbers
-  if(length(valid_directions) > 0) {
-    valid_directions <- paste0("Step ", 1:length(valid_directions), ": ", valid_directions)
-  }
-  
-  return(valid_directions)
-}
-
-# Apply to your scraped directions
-cleaned_directions <- clean_directions(directions)
-print(cleaned_directions)
 ```
