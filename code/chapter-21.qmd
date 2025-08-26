@@ -1,0 +1,174 @@
+---
+title: "For loops"
+author: "Mardan Mirzaguliyev"
+format: html
+editor: visual
+date: 2025/08/26
+---
+
+```{r}
+#|label: load the rvest package
+
+library(rvest)
+```
+
+```{r}
+#|label: v2 of recipe and baking directions scraper function - added URL as a parameter that can be changed - From chapter 20
+
+scrape_recipes <- function(URL) {
+  
+  ## Read html structure of the web page
+  brownies <- read_html(URL)
+  
+  # Steps to get ingredients data
+  ## STEP 1. Get html nodes using CSS selector
+  ingredients <- html_nodes(brownies, ".mm-recipes-structured-ingredients__list")
+  
+  ## STEP 2. Load the data as a text
+  ingredients <- html_text(ingredients)
+  
+  ## STEP 3. Remove extra spaces
+  ingredients <- trimws(ingredients)
+  
+  ## STEP 4. Remove \n characters from the vector
+  ingredients <- gsub("\n\n\n", " ", ingredients)
+
+  ## STEP 5. Split at measurement patterns
+  ingredients <- gsub("\\s+(\\d+\\s+tablespoons?)\\s+", "\n\\1 ", ingredients)
+  ingredients <- gsub("\\s+(\\d+\\s+½\\s+cups?)\\s+", "\n\\1 ", ingredients)
+  ingredients <- gsub("\\s+(\\d+\\s+large)\\s+", "\n\\1 ", ingredients)
+  ingredients <- gsub("\\s+(½\\s+teaspoon)\\s+", "\n\\1 ", ingredients)
+  ingredients <- gsub("\\s+(⅔\\s+cup)\\s+", "\n\\1 ", ingredients)
+  ingredients <- gsub("\\s+(¼\\s+teaspoon)\\s+", "\n\\1 ", ingredients)
+  
+  ## STEP 6. Split vector elements using newline
+  ingredients <- strsplit(ingredients, "\n")[[1]]
+  
+  ## STEP 7. Display ingredients in better format
+  for(i in 1: length(ingredients)) {
+    cat(i, ".", ingredients[i], "\n")
+  }
+  
+  
+  # Steps to get directions data
+  
+  ## STEP 1. Get directions for baking
+  directions <- html_nodes(brownies, '#mntl-sc-block_1-0')
+  
+  # STEP 2. Express the format of the scraped data for baking directions - text
+  directions <- html_text(directions)
+  
+  # STEP 3. Remove image caption
+  directions <- gsub("Dotdash Meredith Food Studios", "", directions, ignore.case = TRUE)
+  
+  # STEP 4. Remove excessive newlines and spaces
+  directions <- gsub("\\n+", " ", directions) # Replace newlines with spaces
+  direction <- gsub("\\s+", " ", directions)  # Replace multiple spaces with single
+  directions <- trimws(directions)            # Remove leading/trailing spaces
+  
+  # STEP5. Split only at major cooking action words
+  
+  major_cooking_actions <- c("Gather", "Preheat", "Combine sugar", "Bake", "Let cool")
+  action_pattern <- paste0("(?<=\\.)\\s+(?=",
+                           paste(major_cooking_actions, collapse = "|"), ")")
+  
+  steps <- strsplit(directions, action_pattern, perl = TRUE)[[1]]
+  
+  # STEP 5. Clean and filter steps
+  steps <- trimws(steps)
+  
+  # STEP 6. Keep only meaningful steps
+  steps <- steps[nchar(steps) > 15]
+  
+  # STEP 7. Add the word Step and step numbers
+  directions <- paste0("Step ", 1:length(steps), ": ", steps)
+  
+  # STEP 8. Display results in a clean, tidy format
+  for(i in 1:length(directions)) {
+    cat(directions[i], "\n\n")
+  }
+}
+```
+
+```{r}
+scrape_recipes("https://www.allrecipes.com/recipe/10294/the-best-lemon-bars/")
+```
+
+## 21.1 Basic for loops
+
+```{r}
+#|label: simple example of for loop
+
+for (i in 1:10) {
+  print(i)
+}
+```
+
+-   The basic concept of a for loop is that you have some code that you need to run many times with slight changes to a value or values in the code - somewhat like a function.
+
+```{r}
+#|label: call different variable inside for loop
+
+for (a_number in 1:10) {
+  print(a_number)
+}
+```
+
+```{r}
+#|label: variables can take other types
+
+animals <- c("cat", "dog", "gorilla", "buffalo", "lion", "snake")
+
+for (animal in animals) {
+  print(animal)
+}
+```
+
+```{r}
+#|label: more complicated example of for loop
+
+for (a_number in 1:10) {
+  print(a_number + 2)
+}
+```
+
+```{r}
+#|label: change each element of a vector using for loop
+
+numbers <- 1:10
+
+for (i in 1:length(numbers)) {
+  numbers[i] <- numbers[i] + 2
+}
+```
+
+```{r}
+#|label: see the result of change
+
+numbers
+```
+
+```{r}
+#|label: example function - add 2 to the given number
+
+add_2 <- function(number) {
+  number <- number + 2
+  return(number)
+}
+```
+
+```{r}
+#|label: use the function inside a for loop
+
+for (i in 1:length(numbers)) {
+  numbers[i] <- add_2(numbers[i])
+}
+```
+
+```{r}
+#|label: check the result of the for loop and function
+
+numbers
+```
+
+## 21.2 Scraping multiple recipes
