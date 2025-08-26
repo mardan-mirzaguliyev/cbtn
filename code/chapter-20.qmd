@@ -1,0 +1,259 @@
+---
+title: "Functions"
+author: "Mardan Mirzaguliyev"
+format: html
+editor: visual
+date: 2025/08/26
+---
+
+## 20.1 A simple function
+
+```{r}
+#|label: simple function example
+
+add_2 <- function(number) {
+  number <- number + 2
+  return(number)
+}
+```
+
+There are five essential parts of a function
+
+-   function_name - This is just the name we give to the function. It can be anything, but as when making other objects, call it something that is easy to remember what it does.
+
+-   parameters - Here is where we say what goes into the function. In most cases you will want to put some data in and expect something new out. For example, for the function `mean()` you put in a vector of numbers in the () section, and it returns the mean of those numbers. Here is also where you can put any options to affect how the code is run.
+
+-   code - This is the code you write to do the thing you want the function to do. In the above example our code is `number <- number + 2`. For any number inputted, our code adds 2 to it and assigns it back into the object *number*.
+
+-   return - This is something new in this book, here you use the `return()` function and inside the () you put the object you want to be outputted. In our example we have *number* inside the `return()` as that’s what we want to come out of the function. It is not always necessary to end your function with `return()` but is highly recommended to do so to make sure you’re outputting what it is you want to output.
+
+-   The final piece is the structure of your function. After the function_name (whatever it is you call it) you always need the text `<- function()` where the parameters (if any) are in the (). After the closing parentheses put a `{`, and at the very end of the function, after the `return()`, close those squiggly brackets with a `}`. The `<- function()` tells R that you are making a function rather than some other type of object. And the `{` and `}` tell R that all the code in between are part of that function.
+
+```{r}
+#|label: use the sample function
+
+add_2(2)
+add_2(5)
+```
+
+## 20.2 Adding parameters
+
+```{r}
+#|label: add a single parameter to the function
+
+add_2 <- function(number, times_5 = FALSE) {
+  number <- number + 2
+  return(number)
+}
+```
+
+```{r}
+#|label: add code to say what happens if the parameter is TRUE
+
+add_2 <- function(number, times_5 = FALSE) {
+  number <- number + 2
+  
+  if(times_5 == TRUE) {
+    number <- number * 5
+  }
+  
+  return(number)
+}
+```
+
+```{r}
+#|label: try new function with a parameter set to default - FALSE
+
+add_2(2)
+```
+
+```{r}
+#|label: try new function with a parameter set to default - TRUE
+
+add_2(2, times_5 = TRUE)
+```
+
+## 20.3 Making a function to scrape recipes
+
+```{r}
+#|label: load the rvest package
+
+library(rvest)
+```
+
+```{r}
+#|label: v0 of scraper function - shell of the function
+
+scrape_recipes <- function(URL) {
+  
+}
+```
+
+```{r}
+#|label: v1 of recipe and baking directions scraper function
+
+scrape_recipes <- function(URL) {
+  
+  # Steps to get ingredients data
+  
+  ## STEP 1. Read html structure of the web page
+  brownies <- read_html("https://www.allrecipes.com/recipe/25080/mmmmm-brownies/")
+  
+  ## STEP 2. Get html nodes using CSS selector
+  ingredients <- html_nodes(brownies, ".mm-recipes-structured-ingredients__list")
+  
+  ## STEP 3. Load the data as a text
+  ingredients <- html_text(ingredients)
+  
+  ## STEP 4. Remove extra spaces
+  ingredients <- trimws(ingredients)
+  
+  ## STEP 5. Remove \n characters from the vector
+  ingredients <- gsub("\n\n\n", " ", ingredients)
+
+  ## STEP 6. Split at measurement patterns
+  ingredients <- gsub("\\s+(\\d+\\s+tablespoons?)\\s+", "\n\\1 ", ingredients)
+  ingredients <- gsub("\\s+(\\d+\\s+½\\s+cups?)\\s+", "\n\\1 ", ingredients)
+  ingredients <- gsub("\\s+(\\d+\\s+large)\\s+", "\n\\1 ", ingredients)
+  ingredients <- gsub("\\s+(½\\s+teaspoon)\\s+", "\n\\1 ", ingredients)
+  ingredients <- gsub("\\s+(⅔\\s+cup)\\s+", "\n\\1 ", ingredients)
+  ingredients <- gsub("\\s+(¼\\s+teaspoon)\\s+", "\n\\1 ", ingredients)
+  
+  ## STEP 7. Split vector elements using newline
+  ingredients <- strsplit(ingredients, "\n")[[1]]
+  
+  ## STEP 8. Display ingredients in better format
+  for(i in 1: length(ingredients)) {
+    cat(i, ".", ingredients[i], "\n")
+  }
+  
+  
+  # Steps to get directions data
+  
+  ## STEP 1. Get directions for baking
+  directions <- html_nodes(brownies, '#mntl-sc-block_1-0')
+  
+  # STEP 2. Express the format of the scraped data for baking directions - text
+  directions <- html_text(directions)
+  
+  # STEP 3. Remove image caption
+  directions <- gsub("Dotdash Meredith Food Studios", "", directions, ignore.case = TRUE)
+  
+  # STEP 4. Remove excessive newlines and spaces
+  directions <- gsub("\\n+", " ", directions) # Replace newlines with spaces
+  direction <- gsub("\\s+", " ", directions)  # Replace multiple spaces with single
+  directions <- trimws(directions)            # Remove leading/trailing spaces
+  
+  # STEP5. Split only at major cooking action words
+  
+  major_cooking_actions <- c("Gather", "Preheat", "Combine sugar", "Bake", "Let cool")
+  action_pattern <- paste0("(?<=\\.)\\s+(?=",
+                           paste(major_cooking_actions, collapse = "|"), ")")
+  
+  steps <- strsplit(directions, action_pattern, perl = TRUE)[[1]]
+  
+  # STEP 5. Clean and filter steps
+  steps <- trimws(steps)
+  
+  # STEP 6. Keep only meaningful steps
+  steps <- steps[nchar(steps) > 15]
+  
+  # STEP 7. Add the word Step and step numbers
+  directions <- paste0("Step ", 1:length(steps), ": ", steps)
+  
+  # STEP 8. Display results in a clean, tidy format
+  for(i in 1:length(directions)) {
+    cat(directions[i], "\n\n")
+  }
+}
+```
+
+```{r}
+scrape_recipes(URL)
+```
+
+```{r}
+#|label: v2 of recipe and baking directions scraper function - added URL as a parameter that can be changed
+
+scrape_recipes <- function(URL) {
+  
+  ## Read html structure of the web page
+  brownies <- read_html(URL)
+  
+  # Steps to get ingredients data
+  ## STEP 1. Get html nodes using CSS selector
+  ingredients <- html_nodes(brownies, ".mm-recipes-structured-ingredients__list")
+  
+  ## STEP 2. Load the data as a text
+  ingredients <- html_text(ingredients)
+  
+  ## STEP 3. Remove extra spaces
+  ingredients <- trimws(ingredients)
+  
+  ## STEP 4. Remove \n characters from the vector
+  ingredients <- gsub("\n\n\n", " ", ingredients)
+
+  ## STEP 5. Split at measurement patterns
+  ingredients <- gsub("\\s+(\\d+\\s+tablespoons?)\\s+", "\n\\1 ", ingredients)
+  ingredients <- gsub("\\s+(\\d+\\s+½\\s+cups?)\\s+", "\n\\1 ", ingredients)
+  ingredients <- gsub("\\s+(\\d+\\s+large)\\s+", "\n\\1 ", ingredients)
+  ingredients <- gsub("\\s+(½\\s+teaspoon)\\s+", "\n\\1 ", ingredients)
+  ingredients <- gsub("\\s+(⅔\\s+cup)\\s+", "\n\\1 ", ingredients)
+  ingredients <- gsub("\\s+(¼\\s+teaspoon)\\s+", "\n\\1 ", ingredients)
+  
+  ## STEP 6. Split vector elements using newline
+  ingredients <- strsplit(ingredients, "\n")[[1]]
+  
+  ## STEP 7. Display ingredients in better format
+  for(i in 1: length(ingredients)) {
+    cat(i, ".", ingredients[i], "\n")
+  }
+  
+  
+  # Steps to get directions data
+  
+  ## STEP 1. Get directions for baking
+  directions <- html_nodes(brownies, '#mntl-sc-block_1-0')
+  
+  # STEP 2. Express the format of the scraped data for baking directions - text
+  directions <- html_text(directions)
+  
+  # STEP 3. Remove image caption
+  directions <- gsub("Dotdash Meredith Food Studios", "", directions, ignore.case = TRUE)
+  
+  # STEP 4. Remove excessive newlines and spaces
+  directions <- gsub("\\n+", " ", directions) # Replace newlines with spaces
+  direction <- gsub("\\s+", " ", directions)  # Replace multiple spaces with single
+  directions <- trimws(directions)            # Remove leading/trailing spaces
+  
+  # STEP5. Split only at major cooking action words
+  
+  major_cooking_actions <- c("Gather", "Preheat", "Combine sugar", "Bake", "Let cool")
+  action_pattern <- paste0("(?<=\\.)\\s+(?=",
+                           paste(major_cooking_actions, collapse = "|"), ")")
+  
+  steps <- strsplit(directions, action_pattern, perl = TRUE)[[1]]
+  
+  # STEP 5. Clean and filter steps
+  steps <- trimws(steps)
+  
+  # STEP 6. Keep only meaningful steps
+  steps <- steps[nchar(steps) > 15]
+  
+  # STEP 7. Add the word Step and step numbers
+  directions <- paste0("Step ", 1:length(steps), ": ", steps)
+  
+  # STEP 8. Display results in a clean, tidy format
+  for(i in 1:length(directions)) {
+    cat(directions[i], "\n\n")
+  }
+}
+```
+
+```{r}
+#|label: test v2 of scraper function - not working on different URLs because of CSS selector difference
+
+scrape_recipes("https://www.allrecipes.com/recipe/10294/the-best-lemon-bars/")
+```
+
+To be continued on the next chapter
