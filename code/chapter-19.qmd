@@ -33,7 +33,7 @@ brownies <- read_html("https://www.allrecipes.com/recipe/25080/mmmmm-brownies/")
 #### 1. Get and clean ingredients data
 
 ```{r}
-#|label: Get html nodes using CSS selector
+#|label: get html nodes using CSS selector
 
 ingredients <- html_nodes(brownies, ".mm-recipes-structured-ingredients__list")
 ```
@@ -51,14 +51,14 @@ ingredients
 ```
 
 ```{r}
-#|label: remove spaces
+#|label: remove extra spaces
 
 ingredients <- trimws(ingredients)
 ingredients
 ```
 
 ```{r}
-#|label: remove \n characters from m 
+#|label: remove \n characters from the vector
 
 ingredients <- gsub("\n\n\n", " ", ingredients)
 ingredients
@@ -66,6 +66,7 @@ ingredients
 
 ```{r}
 #|label: split at measurement patterns
+
 ingredients <- gsub("\\s+(\\d+\\s+tablespoons?)\\s+", "\n\\1 ", ingredients)
 ingredients <- gsub("\\s+(\\d+\\s+½\\s+cups?)\\s+", "\n\\1 ", ingredients)
 ingredients <- gsub("\\s+(\\d+\\s+large)\\s+", "\n\\1 ", ingredients)
@@ -75,7 +76,8 @@ ingredients <- gsub("\\s+(¼\\s+teaspoon)\\s+", "\n\\1 ", ingredients)
 ```
 
 ```{r}
-#|label: split vecvor elements using newline
+#|label: split vector elements using newline
+
 ingredients <- strsplit(ingredients, "\n")[[1]]
 ingredients
 ```
@@ -144,14 +146,15 @@ steps
 ```
 
 ```{r}
-#|label: add step numbers
+#|label: add the word Step and step numbers
+
 directions <- paste0("Step ", 1:length(steps), ": ", steps)
 directions
 ```
 
 ```{r}
 
-#|label: display results
+#|label: display results in a clean, tidy format
 
 for(i in 1:length(directions)) {
   cat(directions[i], "\n\n")
