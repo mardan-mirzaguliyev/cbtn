@@ -90,10 +90,6 @@ scrape_recipes <- function(URL) {
 }
 ```
 
-```{r}
-scrape_recipes("https://www.allrecipes.com/recipe/10294/the-best-lemon-bars/")
-```
-
 ## 21.1 Basic for loops
 
 ```{r}
@@ -172,3 +168,294 @@ numbers
 ```
 
 ## 21.2 Scraping multiple recipes
+
+```{r}
+#|label: recipe links vector
+
+recipe_urls <- c("https://www.allrecipes.com/recipe/25080/mmmmm-brownies/",
+                 "https://www.allrecipes.com/recipe/27188/crepes/",
+                 "https://www.allrecipes.com/recipe/22180/waffles-i/")
+```
+
+```{r}
+#|label: v3 of recipe and baking directions scraper function - CSS selectors as parameters
+
+scrape_recipes <- function(URL, 
+                          ingredients_selector = ".mm-recipes-structured-ingredients__list",
+                          directions_selector = "#mntl-sc-block_1-0") {
+  
+  ## Read html structure of the web page
+  page <- read_html(URL)
+  
+  # ============================================================================
+  # INGREDIENTS SECTION
+  # ============================================================================
+  
+  ## STEP 1. Get html nodes using CSS selector
+  ingredients <- html_nodes(page, ingredients_selector)
+  
+  ## STEP 2. Load the data as a text
+  ingredients <- html_text(ingredients)
+  
+  ## STEP 3. Remove extra spaces
+  ingredients <- trimws(ingredients)
+  
+  ## STEP 4. Remove \n characters from the vector
+  ingredients <- gsub("\n\n\n", " ", ingredients)
+  
+  ## STEP 4.5. Additional cleaning for concatenated ingredients
+  if (directions_selector == "#mm-recipes-steps_1-0") {
+    if (grepl("crepes", URL, ignore.case = TRUE)) {
+      # Handle specific crepes patterns that might be concatenated
+      ingredients <- gsub("(\\d+\\s+large\\s+eggs?)\\s+(\\d+\\s+½\\s+teaspoons?)", "\\1\n\\2", ingredients)
+      ingredients <- gsub("(teaspoons?\\s+[^\\n]+?)\\s+(\\d+\\s+pinch)", "\\1\n\\2", ingredients)
+      ingredients <- gsub("(oil,?\\s+divided)\\s+(\\d+\\s+pinch)", "\\1\n\\2", ingredients)
+    } else if (grepl("waffles", URL, ignore.case = TRUE)) {
+      # Handle waffles patterns - more complex concatenations
+      ingredients <- gsub("(\\d+\\s+large\\s+eggs?)\\s+(\\d+\\s+cups?)", "\\1\n\\2", ingredients)
+      ingredients <- gsub("(cups?\\s+all-purpose\\s+flour)\\s+(\\d+\\s*¾?\\s+cups?)", "\\1\n\\2", ingredients)
+      ingredients <- gsub("(cups?\\s+milk)\\s+(½\\s+cup)", "\\1\n\\2", ingredients)
+      ingredients <- gsub("(cup\\s+vegetable\\s+oil)\\s+(\\d+\\s+tablespoons?)", "\\1\n\\2", ingredients)
+      ingredients <- gsub("(tablespoons?\\s+[^\\n]+?)\\s+(\\d+\\s+teaspoons?)", "\\1\n\\2", ingredients)
+      ingredients <- gsub("(teaspoons?\\s+baking\\s+powder)\\s+(¼\\s+teaspoon)", "\\1\n\\2", ingredients)
+      ingredients <- gsub("(teaspoon\\s+salt)\\s+(½\\s+teaspoon)", "\\1\n\\2", ingredients)
+      ingredients <- gsub("(teaspoon\\s+vanilla\\s+extract)\\s+(nonstick)", "\\1\n\\2", ingredients)
+    }
+  }
+  
+  ## STEP 5. Split at measurement patterns based on ingredients selector
+  if (ingredients_selector == ".mm-recipes-structured-ingredients__list") {
+    # Brownies-specific patterns (original selector)
+    ingredients <- gsub("\\s+(\\d+\\s+tablespoons?)\\s+", "\n\\1 ", ingredients)
+    ingredients <- gsub("\\s+(\\d+\\s+½\\s+cups?)\\s+", "\n\\1 ", ingredients)
+    ingredients <- gsub("\\s+(\\d+\\s+large)\\s+", "\n\\1 ", ingredients)
+    ingredients <- gsub("\\s+(½\\s+teaspoon)\\s+", "\n\\1 ", ingredients)
+    ingredients <- gsub("\\s+(⅔\\s+cup)\\s+", "\n\\1 ", ingredients)
+    ingredients <- gsub("\\s+(¼\\s+teaspoon)\\s+", "\n\\1 ", ingredients)
+    
+  } else if (ingredients_selector == ".mntl-structured-ingredients__list" || 
+             directions_selector == "#mm-recipes-steps_1-0") {
+    # Alternative AllRecipes format - check URL to determine specific patterns
+    if (grepl("crepes", URL, ignore.case = TRUE)) {
+      # Crepes-specific patterns
+      ingredients <- gsub("\\s+(\\d+\\s+cups?)\\s+", "\n\\1 ", ingredients)
+      ingredients <- gsub("\\s+(\\d+\\s+eggs?)\\s+", "\n\\1 ", ingredients)
+      ingredients <- gsub("\\s+(\\d+\\s+large\\s+eggs?)\\s+", "\n\\1 ", ingredients)
+      ingredients <- gsub("\\s+(\\d+\\s+½\\s+teaspoons?)\\s+", "\n\\1 ", ingredients)
+      ingredients <- gsub("\\s+(\\d+\\s+tablespoons?)\\s+", "\n\\1 ", ingredients)
+      ingredients <- gsub("\\s+(½\\s+teaspoon)\\s+", "\n\\1 ", ingredients)
+      ingredients <- gsub("\\s+(¼\\s+teaspoon)\\s+", "\n\\1 ", ingredients)
+      ingredients <- gsub("\\s+(1¼\\s+cups?)\\s+", "\n\\1 ", ingredients)
+      ingredients <- gsub("\\s+(⅔\\s+cup)\\s+", "\n\\1 ", ingredients)
+      ingredients <- gsub("\\s+(⅓\\s+cup)\\s+", "\n\\1 ", ingredients)
+      ingredients <- gsub("\\s+(1\\s+pinch)\\s+", "\n\\1 ", ingredients)
+    } else if (grepl("waffles", URL, ignore.case = TRUE)) {
+      # Waffles-specific patterns
+      ingredients <- gsub("\\s+(\\d+\\s+large\\s+eggs?)\\s+", "\n\\1 ", ingredients)
+      ingredients <- gsub("\\s+(\\d+\\s+cups?)\\s+", "\n\\1 ", ingredients)
+      ingredients <- gsub("\\s+(1\\s*¾\\s+cups?)\\s+", "\n\\1 ", ingredients)
+      ingredients <- gsub("\\s+(½\\s+cup)\\s+", "\n\\1 ", ingredients)
+      ingredients <- gsub("\\s+(\\d+\\s+tablespoons?)\\s+", "\n\\1 ", ingredients)
+      ingredients <- gsub("\\s+(\\d+\\s+teaspoons?)\\s+", "\n\\1 ", ingredients)
+      ingredients <- gsub("\\s+(½\\s+teaspoon)\\s+", "\n\\1 ", ingredients)
+      ingredients <- gsub("\\s+(¼\\s+teaspoon)\\s+", "\n\\1 ", ingredients)
+      ingredients <- gsub("\\s+(nonstick)\\s+", "\n\\1 ", ingredients)
+    } else {
+      # General patterns
+      ingredients <- gsub("\\s+(\\d+\\s+cups?)\\s+", "\n\\1 ", ingredients)
+      ingredients <- gsub("\\s+(\\d+\\s+eggs?)\\s+", "\n\\1 ", ingredients)
+      ingredients <- gsub("\\s+(\\d+\\s+tablespoons?)\\s+", "\n\\1 ", ingredients)
+      ingredients <- gsub("\\s+(½\\s+teaspoon)\\s+", "\n\\1 ", ingredients)
+      ingredients <- gsub("\\s+(¼\\s+teaspoon)\\s+", "\n\\1 ", ingredients)
+      ingredients <- gsub("\\s+(1¼\\s+cups?)\\s+", "\n\\1 ", ingredients)
+      ingredients <- gsub("\\s+(⅔\\s+cup)\\s+", "\n\\1 ", ingredients)
+      ingredients <- gsub("\\s+(⅓\\s+cup)\\s+", "\n\\1 ", ingredients)
+    }
+    
+  } else if (ingredients_selector == ".recipe-ingredients li" || 
+             ingredients_selector == ".ingredients li" ||
+             grepl("waffles", URL, ignore.case = TRUE)) {
+    # List-based ingredients format - waffles patterns
+    ingredients <- gsub("\\s+(\\d+\\s+large\\s+eggs?)\\s+", "\n\\1 ", ingredients)
+    ingredients <- gsub("\\s+(\\d+\\s+cups?)\\s+", "\n\\1 ", ingredients)
+    ingredients <- gsub("\\s+(1\\s*¾\\s+cups?)\\s+", "\n\\1 ", ingredients)
+    ingredients <- gsub("\\s+(½\\s+cup)\\s+", "\n\\1 ", ingredients)
+    ingredients <- gsub("\\s+(\\d+\\s+tablespoons?)\\s+", "\n\\1 ", ingredients)
+    ingredients <- gsub("\\s+(\\d+\\s+teaspoons?)\\s+", "\n\\1 ", ingredients)
+    ingredients <- gsub("\\s+(½\\s+teaspoon)\\s+", "\n\\1 ", ingredients)
+    ingredients <- gsub("\\s+(¼\\s+teaspoon)\\s+", "\n\\1 ", ingredients)
+    ingredients <- gsub("\\s+(nonstick)\\s+", "\n\\1 ", ingredients)
+    
+  } else {
+    # General patterns for any other selector
+    ingredients <- gsub("\\s+(\\d+(?:\\.\\d+)?\\s+(?:cups?|tablespoons?|teaspoons?|ounces?|pounds?))\\s+", "\n\\1 ", ingredients)
+    ingredients <- gsub("\\s+(½|¼|¾|⅓|⅔|1½|2½|3½)\\s+(cups?|tablespoons?|teaspoons?)\\s+", "\n\\1 \\2 ", ingredients)
+    ingredients <- gsub("\\s+(\\d+\\s+(?:large|medium|small))\\s+", "\n\\1 ", ingredients)
+    ingredients <- gsub("\\s+(\\d+(?:\\.\\d+)?\\s+(?:large|medium|small))\\s+", "\n\\1 ", ingredients)
+  }
+  
+  ## STEP 6. Check if ingredients were found and split vector elements using newline
+  if (length(ingredients) == 0 || ingredients == "" || is.na(ingredients)) {
+    cat("=== INGREDIENTS ===\n")
+    cat("⚠️  No ingredients found with selector:", ingredients_selector, "\n")
+    cat("Try using the find_recipe_selectors() function to find the correct selector.\n")
+    ingredients <- character(0)
+  } else {
+    ingredients <- strsplit(ingredients, "\n")[[1]]
+    
+    ## STEP 7. Clean up empty entries
+    ingredients <- ingredients[ingredients != "" & nchar(trimws(ingredients)) > 0]
+    
+    ## STEP 8. Display ingredients in better format
+    cat("=== INGREDIENTS ===\n")
+    if (length(ingredients) > 0) {
+      for(i in 1:length(ingredients)) {
+        cat(i, ".", ingredients[i], "\n")
+      }
+    } else {
+      cat("⚠️  No ingredients could be parsed. Check the selector or page structure.\n")
+    }
+  }
+  
+  # ============================================================================
+  # DIRECTIONS SECTION  
+  # ============================================================================
+  
+  ## STEP 1. Get directions for baking
+  directions <- html_nodes(page, directions_selector)
+  
+  # Check if directions were found
+  if (length(directions) == 0) {
+    cat("\n=== DIRECTIONS ===\n")
+    cat("⚠️  No directions found with selector:", directions_selector, "\n")
+    cat("Try using the find_recipe_selectors() function to find the correct selector.\n")
+    directions <- character(0)
+    steps <- character(0)
+  } else {
+    # STEP 2. Express the format of the scraped data for baking directions - text
+    directions <- html_text(directions)
+    
+    # Check if directions text is empty
+    if (length(directions) == 0 || all(directions == "") || all(is.na(directions))) {
+      cat("\n=== DIRECTIONS ===\n")
+      cat("⚠️  No directions text could be extracted. Check the selector or page structure.\n")
+      directions <- character(0)
+      steps <- character(0)
+    } else {
+  
+      # STEP 3. Remove image captions and common unwanted text
+      directions <- gsub("Dotdash Meredith Food Studios", "", directions, ignore.case = TRUE)
+      directions <- gsub("Allrecipes", "", directions, ignore.case = TRUE)
+      directions <- gsub("Photo by", "", directions, ignore.case = TRUE)
+      directions <- gsub("^Directions\\s+", "", directions, ignore.case = TRUE)  # Remove "Directions" at start
+      directions <- gsub("Diana Chistruga", "", directions, ignore.case = TRUE)  # Remove photographer credit
+      directions <- gsub("/\\s*Diana Chistruga", "", directions, ignore.case = TRUE)  # Remove with slash
+      
+      # STEP 4. Remove excessive newlines and spaces
+      directions <- gsub("\\n+", " ", directions) # Replace newlines with spaces
+      directions <- gsub("\\s+", " ", directions)  # Replace multiple spaces with single
+      directions <- trimws(directions)            # Remove leading/trailing spaces
+      
+      # STEP 4.5. For waffles, also split on forward slashes which seem to separate steps
+      if (grepl("waffles", URL, ignore.case = TRUE)) {
+        directions <- gsub("\\s*/\\s*", "|||SPLIT|||", directions)  # Replace / with split marker
+      }
+      
+      # STEP 5. Split based on directions selector and cooking actions
+      if (directions_selector == "#mntl-sc-block_1-0") {
+        # Original brownies selector - brownies actions
+        major_cooking_actions <- c("Gather", "Preheat", "Combine sugar", "Bake", "Let cool")
+        
+      } else if (directions_selector == "#mm-recipes-steps_1-0") {
+        # Same selector used for both crepes and waffles - check URL
+        if (grepl("crepes", URL, ignore.case = TRUE)) {
+          # Crepes specific - only split at major step breaks
+          major_cooking_actions <- c("Heat a skillet")
+        } else if (grepl("waffles", URL, ignore.case = TRUE)) {
+          # Waffles specific - split at major cooking transitions
+          major_cooking_actions <- c("Whisk eggs", "Spray the preheated waffle iron", "Serve and enjoy")
+        } else {
+          # Default for this selector
+          major_cooking_actions <- c("Heat", "Cook", "Serve")
+        }
+        
+      } else if (directions_selector == "#mntl-sc-block_3-0" ||
+                 grepl("waffles", URL, ignore.case = TRUE)) {
+        # Waffles specific selector - split at major cooking transitions
+        major_cooking_actions <- c("Whisk eggs", "Spray the preheated waffle iron", "Serve and enjoy")
+        
+      } else if (grepl("instructions", directions_selector, ignore.case = TRUE) || 
+                 grepl("directions", directions_selector, ignore.case = TRUE)) {
+        # Instructions/directions based selectors
+        major_cooking_actions <- c("Gather", "Preheat", "Mix", "Combine", "Whisk", "Beat", 
+                                  "Heat", "Cook", "Bake", "Pour", "Add", "Stir", "Let cool", "Serve")
+      } else {
+        # General cooking actions for any other selector
+        major_cooking_actions <- c("Gather", "Preheat", "Mix", "Combine", "Whisk", "Beat", 
+                                  "Heat", "Cook", "Bake", "Pour", "Add", "Stir", "Let cool", "Serve")
+      }
+      
+      # Create pattern for splitting
+      if (grepl("waffles", URL, ignore.case = TRUE)) {
+        # For waffles, split on our custom marker
+        steps <- strsplit(directions, "\\|\\|\\|SPLIT\\|\\|\\|")[[1]]
+      } else {
+        # For other recipes, use the cooking actions pattern
+        action_pattern <- paste0("(?<=\\.)\\s+(?=", paste(major_cooking_actions, collapse = "|"), ")")
+        steps <- strsplit(directions, action_pattern, perl = TRUE)[[1]]
+      }
+      
+      # STEP 6. Clean and filter steps
+      steps <- trimws(steps)
+      
+      # STEP 7. Keep only meaningful steps (longer than 15 characters)
+      steps <- steps[nchar(steps) > 15]
+      
+      # STEP 8. Add the word Step and step numbers
+      if (length(steps) > 0) {
+        directions_formatted <- paste0("Step ", 1:length(steps), ": ", steps)
+        
+        # STEP 9. Display results in a clean, tidy format
+        cat("\n=== DIRECTIONS ===\n")
+        for(i in 1:length(directions_formatted)) {
+          cat(directions_formatted[i], "\n\n")
+        }
+      } else {
+        cat("\n=== DIRECTIONS ===\n")
+        cat("⚠️  No meaningful direction steps could be parsed.\n")
+      }
+    }
+  }
+  
+  # Return the data as a list (optional)
+  invisible(list(
+    ingredients = if(exists("ingredients")) ingredients else character(0),
+    directions = if(exists("steps")) steps else character(0),
+    ingredients_selector = ingredients_selector,
+    directions_selector = directions_selector,
+    url = URL
+  ))
+}
+```
+
+```{r}
+#|label: test it with the first url - CSS selectors are default to the function so, no need to provide
+
+scrape_recipes(recipe_urls[1])
+```
+
+```{r}
+#|label: test for the second url
+
+scrape_recipes(recipe_urls[2],
+               ingredients_selector = ".mm-recipes-structured-ingredients__list",
+               directions_selector = "#mm-recipes-steps_1-0")
+```
+
+```{r}
+#|label: test for the third url
+
+scrape_recipes(recipe_urls[3],
+               ingredients_selector = ".mm-recipes-structured-ingredients__list",
+               directions_selector = "#mm-recipes-steps_1-0")
+```
