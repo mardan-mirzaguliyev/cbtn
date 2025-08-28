@@ -1,0 +1,27 @@
+---
+title: "More scraping tables from PDFs"
+author: "Mardan Mirzaguliyev"
+format: html
+editor: visual
+date: 2025/08/29
+---
+
+Data:
+
+-   AbbreRptCurrent.pdf
+
+-   PregnantFemaleReportingCurrent.pdf.
+
+## 23.1 Texas jail data
+
+```{r}
+#|label: load the tabularizer package
+
+library(tabulapdf)
+```
+
+```{r}
+#|label: read data into R
+
+texas_jail <- extract_tables("data/AbbreRptCurrent.pdf")
+```
