@@ -1,0 +1,292 @@
+---
+title: "Scraping tables from PDFs"
+author: "Mardan Mirzaguliyev"
+format: html
+editor: visual
+date: 2025/08/28
+---
+
+-   Data:
+
+    -   usbp_stats_fy2017_sector_profile.pdf.
+
+## 22.1 Scraping the first table
+
+```{r}
+#|label: load the pdftools package
+
+library(pdftools)
+```
+
+```{r}
+#|label: read pdf data to R
+
+border_patrol <- pdf_text("data/usbp_stats_fy2017_sector_profile.pdf")
+```
+
+```{r}
+#|label: check the first 6 rows of data
+
+head(border_patrol)
+```
+
+```{r}
+#|label: check the length of the data
+
+length(border_patrol)
+```
+
+```{r}
+#|label: check the first element of the object
+
+border_patrol[1]
+```
+
+```{r}
+#|label: example usage of strsplit() function
+
+strsplit("criminology", split = "n")
+```
+
+```{r}
+#|label: get the first table from the data
+
+sector_profile <- border_patrol[1]
+sector_profile <- strsplit(sector_profile, "\n")
+
+# For lists use [[]] for subsetting
+sector_profile <- sector_profile[[1]]
+```
+
+```{r}
+#|label: check the first 6 rows
+
+head(sector_profile)
+```
+
+```{r}
+#|label: remove extra white spaces
+
+sector_profile <- trimws(sector_profile)
+```
+
+```{r}
+#|label: check data
+
+sector_profile
+```
+
+```{r}
+#|label: get the number of row where the state is Miami
+
+grep("Miami", sector_profile)
+```
+
+```{r}
+#|label: get the number of row where the value is Nationwide Total
+
+grep("Nationwide Total", sector_profile)
+```
+
+```{r}
+#|label: get data in between those rows
+
+sector_profile <- sector_profile[grep("Miami", sector_profile):
+                                   grep("Nationwide Total", sector_profile)]
+```
+
+```{r}
+#|label: check the first 6 rows of data
+
+head(sector_profile)
+```
+
+```{r}
+#|label: load the stringr package
+
+library(stringr)
+```
+
+```{r}
+#|label: split data according to 2+ white spaces between fields
+
+sector_profile <- str_split_fixed(sector_profile, " {2,}", 10)
+```
+
+```{r}
+#|label: check the first 6 rows
+
+head(sector_profile)
+```
+
+```{r}
+#|label: convert the list to data frame
+
+sector_profile <- data.frame(sector_profile)
+```
+
+```{r}
+#|label: give columns meaningful names
+
+names(sector_profile) <- c("sector",
+                           "agent_staffing",
+                           "apprehensions",
+                           "other_than_mexican_apprehensions",
+                           "marijuana_pounds",
+                           "cocaine_pounds",
+                           "accepted_prosecutions",
+                           "assaults",
+                           "rescues",
+                           "deaths")
+```
+
+```{r}
+#|label: check the first 6 rows of data frame
+
+head(sector_profile)
+```
+
+## 22.2 Making a function
+
+```{r}
+#|label: all the code together
+
+sector_profile <- border_patrol[1]
+sector_profile <- trimws(sector_profile)
+sector_profile <- str_split(sector_profile, "\r\n")
+sector_profile <- sector_profile[[1]]
+sector_profile <- sector_profile[grep("Miami", sector_profile):
+                                   grep("Nationwide Total", sector_profile)]
+sector_profile <- str_split_fixed(sector_profile, " {2,}", 10)
+sector_profile <- data.frame(sector_profile)
+names(sector_profile) <- c("sector",
+                           "agent_staffing",
+                           "total_apprehensions",
+                           "other_than_mexican_apprehensions", 
+                           "marijuana_pounds",
+                           "cocaine_pounds",
+                           "accepted_prosecutions",
+                           "assaults",
+                           "rescues",
+                           "deaths")
+```
+
+```{r}
+#|label: create a function
+
+scrape_pdf <- function(list_of_tables,
+                       table_number,
+                       number_columns,
+                       column_names) {
+  data <- list_of_tables[table_number]
+  data <- trimws(data)
+  data <- strsplit(data, "\n")
+  data <- data[[1]]
+  data <- data[grep("Miami", data):
+                 grep("Nationwide Total", data)]
+  data <- str_split_fixed(data, " {2,}", number_columns)
+  data <- data.frame(data)
+  names(data) <- column_names
+  
+  
+  return(data)
+}
+```
+
+```{r}
+#|label: test the function for the table one
+
+table_1 <- scrape_pdf(list_of_tables = border_patrol,
+                      table_number = 1,
+                      number_columns = 10,
+                      column_names = c("sector",
+                                       "agent_staffing",
+                                       "total_apprehensions",
+                                       "other_than_mexican_apprehensions", 
+                                       "marijuana_pounds",
+                                       "cocaine_pounds",
+                                       "accepted_prosecutions",
+                                       "assaults",
+                                       "rescues",
+                                       "deaths"))
+```
+
+```{r}
+#|label: check the first 6 rows of the table 1
+
+head(table_1)
+```
+
+```{r}
+#|label: test the function for the table two
+
+table_2 <- scrape_pdf(list_of_tables = border_patrol,
+                      table_number = 2,
+                      number_columns = 6,
+                      column_names = c("sector",
+                                       "accompanied_juveniles",
+                                       "unaccompanied_juveniles",
+                                       "total_juveniles", 
+                                       "total_adults",
+                                       "total_apprehensions"))
+```
+
+```{r}
+#|label: check the first 6 rows of the table 2
+
+head(table_2)
+```
+
+```{r}
+#|label: test the function for the table three
+
+table_3 <- scrape_pdf(list_of_tables = border_patrol,
+                      table_number = 3,
+                      number_columns = 4,
+                      column_names = c("sector",
+                                       "female",
+                                       "male",
+                                       "total_apprehensions"))
+```
+
+```{r}
+#|label: check the first 6 rows of the table three
+
+head(table_3)
+```
+
+```{r}
+#|label: check asterisks in in sector column
+
+table_1$sector
+```
+
+```{r}
+#|label: delete asterisks from sector column
+
+table_1$sector <- gsub("\\*", "", table_1$sector)
+```
+
+```{r}
+#|label: load the dplyr package
+
+library(dplyr)
+```
+
+```{r}
+#|label: join first two tables
+
+first_two <- left_join(table_1, table_2)
+```
+
+```{r}
+#|label: join the third table with previously joined tables
+
+final_data <- left_join(first_two, table_3)
+```
+
+```{r}
+#|label: check the first 6 rows of data
+
+head(final_data)
+```
