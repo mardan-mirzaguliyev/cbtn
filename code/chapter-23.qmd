@@ -42,7 +42,7 @@ library(readr)
 ```{r}
 #|label: set your PDF file path
 
-pdf_file_path <- "data/AbbreRptCurrent.pdf"
+texas_pdf <- "data/AbbreRptCurrent.pdf"
 ```
 
 ### File Existence Check
@@ -60,12 +60,12 @@ pdf_file_path <- "data/AbbreRptCurrent.pdf"
 ```{r}
 #|label: check if file exists
 
-if (!file.exists(pdf_file_path)) {
-  cat("✗ File not found:", pdf_file_path, "\n")
+if (!file.exists(texas_pdf)) {
+  cat("✗ File not found:", texas_pdf, "\n")
   cat("Current directory:", getwd(), "\n")
   stop("Please check your file path")
 } else {
-  cat("✓ File found:", pdf_file_path, "\n")
+  cat("✓ File found:", texas_pdf, "\n")
 }
 ```
 
@@ -80,7 +80,7 @@ if (!file.exists(pdf_file_path)) {
 ```{r}
 #|label: get PDF info
 
-pdf_info <- pdf_info(pdf_file_path)
+pdf_info <- pdf_info(texas_pdf)
 cat("PDF Pages:", pdf_info$pages, "\n")
 cat("PDF Title:", pdf_info$title, "\n")
 cat("PDF Creator:", pdf_info$creator, "\n")
@@ -102,7 +102,7 @@ cat("PDF Creator:", pdf_info$creator, "\n")
 #|label: try to extract text using pdftools
 
 text_content <- tryCatch({
-  pdf_text(pdf_file_path)
+  pdf_text(texas_pdf)
 }, error = function(e) {
   cat("Error extracting text:", e$message, "\n")
   NULL
@@ -442,8 +442,8 @@ if (!is.null(text_content)) {
 #############
         if (nrow(texas_jail) > 0) {
           # Save results
-          write_csv(texas_jail, "texas_jail_population_parsed.csv")
-          saveRDS(texas_jail, "texas_jail_population_parsed.rds")
+          write_csv(texas_jail, "data/texas_jail_population_parsed.csv")
+          saveRDS(texas_jail, "data/texas_jail_population_parsed.rds")
           
           cat("✓ Data saved to:\n")
           cat("- texas_jail_population_parsed.csv\n")
@@ -453,7 +453,7 @@ if (!is.null(text_content)) {
           cat("\nFirst 6 rows of parsed data:\n")
           print(head(texas_jail))
           
-          cat("\n✓ Data available in 'jail_data' variable\n")
+          cat("\n✓ Data available in 'texas_jail' variable\n")
           
         } else {
           cat("✗ No valid data rows after cleaning\n")
@@ -489,7 +489,7 @@ library(pdftools)
 ```{r}
 #|label: file path set up
 
-pdf_file_path <- "data/PregnantFemaleReportingCurrent.pdf"
+pregnant_woman_booked_pdf <- "data/PregnantFemaleReportingCurrent.pdf"
 ```
 
 ### File Existence Check
@@ -497,19 +497,19 @@ pdf_file_path <- "data/PregnantFemaleReportingCurrent.pdf"
 ```{r}
 #|label: check if the file exists
 
-if(!file.exists(pdf_file_path)) {
-  cat("✗ File not found:", pdf_file_path, "\n")
+if(!file.exists(pregnant_woman_booked_pdf)) {
+  cat("✗ File not found:", pregnant_woman_booked_pdf, "\n")
   cat("Current directory:", getwd(), "\n")
   stop("Please check your file path")
 } else {
-  cat("✓ File found:", pdf_file_path, "\n")
+  cat("✓ File found:", pregnant_woman_booked_pdf, "\n")
 }
 ```
 
 ```{r}
 #|label: get file information
 
-pdf_info <- pdf_info(pdf_file_path)
+pdf_info <- pdf_info(pregnant_woman_booked_pdf)
 cat("PDF Pages:", pdf_info$pages, "\n")
 ```
 
@@ -519,7 +519,7 @@ cat("PDF Pages:", pdf_info$pages, "\n")
 #|label: attempt to extract all text from the PDF with error handling
 
 text_content <- tryCatch({
-  pdf_text(pdf_file_path)
+  pdf_text(pregnant_woman_booked_pdf)
 }, error = function(e) {
   cat("Error extracting text:", e$message)
 })
