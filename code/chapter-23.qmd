@@ -14,14 +14,620 @@ Data:
 
 ## 23.1 Texas jail data
 
-```{r}
-#|label: load the tabularizer package
+### Package Loading
 
-library(tabulapdf)
+**Purpose**: Comments showing which packages to install if not already available.
+
+-   `pdftools`: Extracts text from PDF files
+
+-   `stringr`: String manipulation functions
+
+-   `dplyr`: Data manipulation and transformation
+
+-   `readr`: Reading and writing data files
+
+```{r}
+#|label: load the necessary packages for the Texas jail data
+
+library(pdftools)
+library(stringr)
+library(dplyr)
+library(readr)
+```
+
+### File Path Setup
+
+**Purpose**: Store the path to your PDF file in a variable for easy reference throughout the script.
+
+```{r}
+#|label: set your PDF file path
+
+pdf_file_path <- "data/AbbreRptCurrent.pdf"
+```
+
+### File Existence Check
+
+**Purpose**: Verify the PDF file exists before trying to process it.
+
+-   `file.exists()`: Returns TRUE if file exists, FALSE if not
+
+-   `!`: Negation operator (NOT)
+
+-   `getwd()`: Gets current working directory
+
+-   `stop()`: Halts execution with error message if file not found
+
+```{r}
+#|label: check if file exists
+
+if (!file.exists(pdf_file_path)) {
+  cat("✗ File not found:", pdf_file_path, "\n")
+  cat("Current directory:", getwd(), "\n")
+  stop("Please check your file path")
+} else {
+  cat("✓ File found:", pdf_file_path, "\n")
+}
+```
+
+### PDF Information Extraction
+
+**Purpose**: Extract basic metadata about the PDF.
+
+-   `pdf_info()`: Returns information about the PDF (pages, title, creator, etc.)
+
+-   `$`: Accesses specific elements from the info object
+
+```{r}
+#|label: get PDF info
+
+pdf_info <- pdf_info(pdf_file_path)
+cat("PDF Pages:", pdf_info$pages, "\n")
+cat("PDF Title:", pdf_info$title, "\n")
+cat("PDF Creator:", pdf_info$creator, "\n")
+```
+
+### Text Extraction with Error Handling
+
+**Purpose**: Attempt to extract all text from the PDF with error handling.
+
+-   `tryCatch()`: Executes code and catches any errors
+
+-   `pdf_text()`: Extracts text from all pages of PDF, returns vector of strings (one per page)
+
+-   `error = function(e)`: What to do if an error occurs
+
+-   Returns `NULL` if extraction fails
+
+```{r}
+#|label: try to extract text using pdftools
+
+text_content <- tryCatch({
+  pdf_text(pdf_file_path)
+}, error = function(e) {
+  cat("Error extracting text:", e$message, "\n")
+  NULL
+})
+```
+
+### Text Content Analysis
+
+**Purpose**: Check if text extraction was successful.
+
+-   `is.null()`: Checks if variable is NULL
+
+-   `length()`: Number of elements in the vector (= number of pages)
+
+**Purpose**: Count total characters to assess if meaningful text was found.
+
+-   `nchar()`: Number of characters in each string
+
+-   `sum()`: Add up character counts from all pages
+
+**Purpose**: Determine if PDF contains enough text to be considered text-based (not scanned image).
+
+### Text Preview
+
+**Purpose**: Show preview of extracted text from first page.
+
+-   `text_content[1]`: First element (first page) of the vector
+
+-   `substr()`: Extract substring from position 1 to 1000
+
+### Text Processing
+
+**Purpose**: Combine all pages into single string.
+
+-   `paste()`: Combine strings
+
+-   `collapse = "\n"`: Join with newline characters between pages
+
+**Purpose**: Split the combined text into individual lines.
+
+-   `strsplit()`: Split string at specified pattern ("\\n" = newlines)
+
+-   `[[1]]`: Extract first (and only) element from the result list
+
+**Purpose**: Remove empty lines.
+
+-   `trimws()`: Remove whitespace from beginning and end of strings
+
+-   `nchar() > 0`: Keep only lines with at least one character
+
+-   `lines[...]`: Subset lines based on the condition
+
+### Data Line Identification
+
+**Purpose**: Find lines that look like data (contain multiple numbers separated by spaces).
+
+-   `grepl()`: Returns TRUE/FALSE for each line matching the pattern
+
+-   `"\\d+\\s+\\d+"`: Regular expression pattern:
+
+    -   `\\d+`: One or more digit
+
+    -   `\\s+`: One or more white space characters
+
+    -   Pattern finds lines with at least two numbers separated by spaces
+
+### Data Parsing Function
+
+**Purpose**: Function to parse a single data line into columns.
+
+-   `trimws()`: Remove leading/trailing white space
+
+-   `strsplit(line, "\\s{2,}")`: Split on 2 or more consecutive spaces
+
+-   `unlist()`: Convert list result to vector
+
+-   Remove empty parts and return
+
+### Apply Parsing to All Data Lines
+
+**Purpose**: Apply the parsing function to every data line.
+
+-   `lapply()`: Apply function to each element of a list/vector
+
+-   Returns list where each element is a parsed line
+
+### Column Consistency Check
+
+**Purpose**: Find the most common number of columns to handle inconsistent parsing.
+
+-   `sapply()`: Apply `length()` to each parsed line
+
+-   `table()`: Count how many times each column count appears
+
+-   `sort(..., decreasing = TRUE)`: Sort counts from highest to lowest
+
+-   `[1]`: Take the most common count
+
+-   `names()`: Get the column count value
+
+-   `as.numeric()`: Convert to number
+
+### Data Frame Creation
+
+**Purpose**: Keep only rows with the most common number of columns.
+
+**Purpose**: Convert list of parsed lines into a matrix.
+
+-   `lapply(..., function(x))`: Apply function to each row
+
+-   `if (length(x) == most_common_cols)`: Check if row has right number of columns
+
+-   `rep(NA, most_common_cols)`: Create row of missing values if wrong length
+
+-   `do.call(rbind, ...)`: Combine all rows into matrix using `rbind()`
+
+**Purpose**: Convert matrix to data frame, keeping text as character strings (not factors).
+
+### Column Naming
+
+**Purpose**: Assign meaningful column names if we have the expected number of columns.
+
+-   `c()`: Create vector of column names
+
+-   `ncol()`: Number of columns in data frame
+
+-   `names(texas_jail) <-`: Assign column names
+
+-   `paste0("V", 1:ncol(texas_jail))`: Create generic names V1, V2, V3, etc.
+
+### Data Type Conversion
+
+**Purpose**: Convert numeric columns from text to numbers.
+
+-   `names(texas_jail)[-1]`: All column names except the first (County)
+
+-   `for (col in numeric_cols)`: Loop through each numeric column
+
+-   `gsub("[^0-9.-]", "", ...)`: Remove all non-numeric characters except digits, periods, and hyphens
+
+-   `as.numeric()`: Convert cleaned text to numbers
+
+-   `texas_jail[[col]] <-`: Assign cleaned values back to column
+
+### Data Cleaning
+
+**Purpose**: Remove header rows that got mixed in with data.
+
+-   `grepl(..., ignore.case = TRUE)`: Find rows where first column contains "County", "Total", or "Page"
+
+-   `!`: Negate (keep rows that DON'T match)
+
+-   `texas_jail[..., ]`: Subset rows based on condition
+
+**Purpose**: Remove rows with empty county names.
+
+-   `is.na()`: Check for missing values
+
+-   `texas_jail[,1] != ""`: Check for empty strings
+
+-   `&`: AND operator (both conditions must be true)
+
+-   `!`: Keep rows where county name is NOT missing AND NOT empty
+
+### Save Results
+
+**Purpose**: Save the cleaned data in two formats.
+
+-   `write_csv()`: Save as CSV file (readable by Excel, other programs)
+
+-   `saveRDS()`: Save as R data file (preserves data types, faster loading in R)
+
+```{r}
+#|label: get final clean data frame
+
+if (!is.null(text_content)) {
+  cat("✓ Text extraction successful\n")
+  cat("Number of pages with text:", length(text_content), "\n")
+  
+  
+############
+  total_chars <- sum(nchar(text_content))
+  cat("Total characters extracted:", total_chars, "\n")
+  
+  
+############
+# Purpose: Determine if PDF contains enough text to be considered text-based (not scanned image).
+  if (total_chars > 100) {
+    cat("✓ Substantial text content found - PDF is text-based\n")
+    
+
+############
+    cat("\n=== FIRST PAGE TEXT PREVIEW ===\n")
+    first_page <- text_content[1]
+    cat(substr(first_page, 1, 1000), "\n")
+    cat("...[truncated]\n")
+
+    
+############
+    all_text <- paste(text_content, collapse = "\n")
+    
+  
+############
+    lines <- strsplit(all_text, "\n")[[1]]
+
+
+############
+    # Remove empty lines
+    lines <- lines[nchar(trimws(lines)) > 0]
+    cat("Total non-empty lines:", length(lines), "\n")
+
+    
+############
+    # Look for lines that might be data rows (contain county names and numbers)
+    # Based on your document, look for lines with multiple numbers
+    data_lines <- lines[grepl("\\d+\\s+\\d+", lines)]
+    
+    cat("Lines that look like data rows:", length(data_lines), "\n")
+    
+    if (length(data_lines) > 0) {
+      cat("\nFirst few data lines:\n")
+      print(head(data_lines, 10))
+
+
+############
+      # Attempt to parse the structured data
+      cat("\n=== PARSING STRUCTURED DATA ===\n")
+
+
+############
+      # Function to parse a data line
+      parse_jail_line <- function(line) {
+        # Clean the line
+        line <- trimws(line)
+        
+        # Split by multiple spaces (assuming columns are separated by multiple spaces)
+        parts <- unlist(strsplit(line, "\\s{2,}"))
+        
+        # Remove empty parts
+        parts <- parts[nchar(trimws(parts)) > 0]
+        
+        return(parts)
+      }
+      
+      
+############
+      # Parse all data lines
+      parsed_data <- lapply(data_lines, parse_jail_line)
+      
+
+############
+      # Find the most common number of columns (to handle inconsistencies)
+      col_counts <- sapply(parsed_data, length)
+      most_common_cols <- as.numeric(names(sort(table(col_counts), decreasing = TRUE)[1]))
+      cat("Most common number of columns:", most_common_cols, "\n")
+
+
+#############
+      # Filter to rows with the most common column count
+      consistent_rows <- parsed_data[col_counts == most_common_cols]
+      
+
+#############
+      if (length(consistent_rows) > 0) {
+        # Convert to data frame
+        texas_jail <- do.call(rbind, lapply(consistent_rows, function(x) {
+          if (length(x) == most_common_cols) {
+            return(x)
+          } else {
+            return(rep(NA, most_common_cols))
+          }
+        }))
+        
+
+#############
+        texas_jail <- as.data.frame(texas_jail, stringsAsFactors = FALSE)
+   
+         
+#############
+        # Set column names (you may need to adjust these based on your data)
+        expected_columns <- c(
+          "county",
+          "pretrial_felons",
+          "conv_felons", 
+          "conv_felons_sentenced_to_county_jail_time",
+          "parole_violators",
+          "parole_violators_with_a_New_Charge",
+          "pretrial_misd",
+          "conv_misd",
+          "bench_warrants",
+          "federal",
+          "pretrial_sjf",
+          "conv_sjf_sentenced_to_co_jail_time",
+          "conv_sjf_sentenced_to_state_jail",
+          "total_others",
+          "total_local", 
+          "total_contract",
+          "total_population",
+          "total_capacity",
+          "percent_of_capacity",
+          "available_beds"
+        )
+        
+        if (ncol(texas_jail) == length(expected_columns)) {
+          names(texas_jail) <- expected_columns
+        } else {
+          names(texas_jail) <- paste0("V", 1:ncol(texas_jail))
+        }
+        
+        cat("Parsed data frame dimensions:", nrow(texas_jail), "x", ncol(texas_jail), "\n")
+        
+
+#############
+        # Clean numeric columns
+        numeric_cols <- names(texas_jail)[-1]
+        for (col in numeric_cols) {
+          if (col %in% names(texas_jail)) {
+            texas_jail[[col]] <- as.numeric(gsub("[^0-9.-]", "", texas_jail[[col]]))
+          }
+        }
+        
+#############
+        # Remove rows where county name looks like headers
+        texas_jail <- texas_jail[!grepl("County|Total|Page", 
+                                                  texas_jail[,1], 
+                                                  ignore.case = TRUE), ]
+        
+
+#############
+        # Remove empty rows
+        texas_jail <- texas_jail[!is.na(texas_jail[,1]) & 
+                                             texas_jail[,1] != "", ]
+        
+        cat("Final cleaned data:", nrow(texas_jail), "rows\n")
+        
+
+#############
+        if (nrow(texas_jail) > 0) {
+          # Save results
+          write_csv(texas_jail, "texas_jail_population_parsed.csv")
+          saveRDS(texas_jail, "texas_jail_population_parsed.rds")
+          
+          cat("✓ Data saved to:\n")
+          cat("- texas_jail_population_parsed.csv\n")
+          cat("- texas_jail_population_parsed.rds\n")
+          
+          # Show preview
+          cat("\nFirst 6 rows of parsed data:\n")
+          print(head(texas_jail))
+          
+          cat("\n✓ Data available in 'jail_data' variable\n")
+          
+        } else {
+          cat("✗ No valid data rows after cleaning\n")
+        }
+      } else {
+        cat("✗ No consistent data rows found\n")
+      }
+    } else {
+      cat("✗ No data lines detected in the text\n")
+    }
+  }
+} else {
+  cat("✗ Could not extract any text from PDF\n")
+  cat("This confirms the PDF is likely image-based (scanned)\n")
+}
+```
+
+## 23.2 Pregnant women incarcerated
+
+### Load libraries
+
+```{r}
+#|label: load the necessary packages Pregnant Female Booked Data
+
+library(stringr)
+library(tidyr)
+library(dplyr)
+library(pdftools)
+```
+
+### File Path Setup
+
+```{r}
+#|label: file path set up
+
+pdf_file_path <- "data/PregnantFemaleReportingCurrent.pdf"
+```
+
+### File Existence Check
+
+```{r}
+#|label: check if the file exists
+
+if(!file.exists(pdf_file_path)) {
+  cat("✗ File not found:", pdf_file_path, "\n")
+  cat("Current directory:", getwd(), "\n")
+  stop("Please check your file path")
+} else {
+  cat("✓ File found:", pdf_file_path, "\n")
+}
 ```
 
 ```{r}
-#|label: read data into R
+#|label: get file information
 
-texas_jail <- extract_tables("data/AbbreRptCurrent.pdf")
+pdf_info <- pdf_info(pdf_file_path)
+cat("PDF Pages:", pdf_info$pages, "\n")
+```
+
+### Text Extraction with Error Handling
+
+```{r}
+#|label: attempt to extract all text from the PDF with error handling
+
+text_content <- tryCatch({
+  pdf_text(pdf_file_path)
+}, error = function(e) {
+  cat("Error extracting text:", e$message)
+})
+```
+
+### Text Content Analysis
+
+```{r}
+#|label: check if text extraction was successful
+
+if(!is.null(text_content)) {
+  cat("✓ Text extraction successful\n")
+  cat("Number of pages with text:", length(text_content), "\n")
+}
+```
+
+```{r}
+#|label: count total characters to assess if meaningful text was found
+
+total_chars <- sum(nchar(text_content))
+cat("Total characters extracted: ", total_chars)
+```
+
+```{r}
+#|label: determine if PDF contains enough text to be considered text-based (not scanned image)
+
+if(total_chars > 100) {
+  cat("✓ Substantial text content found - PDF is text-based\n")
+}
+```
+
+### Text Preview
+
+```{r}
+#|label: check the raw extracted text
+
+text_content
+```
+
+### Data Cleaning
+
+```{r}
+#|label: remove the first line
+
+text_content <- str_replace(text_content,
+                            "Pregnant Females Booked.*?Month Total:\\s*\\d+\\n",
+                            "")
+```
+
+```{r}
+#|label: check data after removing the title
+
+text_content
+```
+
+```{r}
+#|label: split into lines
+
+lines <- strsplit(text_content, "\n")[[1]]
+```
+
+```{r}
+#|label: split into columns
+
+lines <- lines[str_trim(lines) != ""]
+```
+
+```{r}
+#|label: check data again after splitting into lines and columns
+
+lines
+```
+
+```{r}
+#|label: create a matrix from split data
+
+final_data_matrix <- do.call(rbind, lapply(lines, function(line) {
+  cols <- str_split(str_trim(line), "\\s{2,}")[[1]]
+  length(cols) <- 10 # Ensure 10 colums
+  return(cols)
+}))
+```
+
+```{r}
+#|label: convert to data frame
+
+final_data_converted <- as.data.frame(final_data_matrix, stringsAsFactors = FALSE)
+```
+
+```{r}
+#|label: check data frame after conversion
+
+head(final_data_converted)
+```
+
+```{r}
+#|label: reshape to long format
+
+pregnant_female_booked <- data.frame()
+
+for (i in seq(1, 9, 2)) {
+  temp <- data.frame(
+    county = final_data_converted[[i]],
+    pregnant_females_booked = as.numeric(final_data_converted[[i+1]])
+  )
+  temp <- temp[!is.na(temp$county) 
+               & temp$county != "" 
+               & !is.na(temp$pregnant_females_booked), ]
+  pregnant_female_booked <- rbind(pregnant_female_booked, temp)
+}
 ```
