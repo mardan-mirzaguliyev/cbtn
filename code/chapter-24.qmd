@@ -1,0 +1,225 @@
+---
+title: "Geocoding"
+author: "Mardan Mirzaguliyev"
+format: html
+editor: visual
+date: 2025/08/30
+---
+
+-   Data:
+
+    -   san_francisco_active_marijuana_retailers.csv
+
+## 24.1 Geocoding a single address
+
+-   Geocoding is the process of taking an address (e.g. 123 Main Street, Somewhere, CA, 12345) and getting the longitude and latitude coordinates of that address.
+
+## 24.1 Geocoding a single address
+
+```{r}
+#|label: load the tidygeocoder package
+
+library(tidygeocoder)
+```
+
+```{r}
+#|label: example of geocode() function - function expects dataframe, not tibble
+
+# geocode("750 Race St. Philadelphia, PA 19106")
+
+# Error: .tbl is not a dataframe. See ?geocode
+```
+
+```{r}
+#|label: corrected example
+
+address_to_geocode <- data.frame(address = 
+                                   "750 Race St. Philadelphia, PA 19106")
+
+geocode(address_to_geocode, address)
+```
+
+```{r}
+#|label: address column can be used with or withoud quotes
+
+geocode(address_to_geocode, address = "address")
+```
+
+```{r}
+#|label: method parameter to geocode function - Using Open Street Map as a source
+
+example <- geocode(address_to_geocode,
+                   address = "address",
+                   method = "osm")
+example
+```
+
+```{r}
+#|label: method parameter to geocode function - Using US Census Bureau’s geocoder as a source
+
+example <- geocode(address_to_geocode, 
+                   address = "address",
+                   method = "census")
+example
+```
+
+```{r}
+#|label: method parameter to geocode function - Using ArcGIS geocoder as a source
+
+example <- geocode(address_to_geocode,
+                   address = "address",
+                   method = "arcgis")
+example
+```
+
+```{r}
+#|label: convert the result to tibble
+
+example <- geocode(address_to_geocode,
+                   address = "address",
+                   method = "arcgis")
+example <- data.frame(example)
+example
+```
+
+```{r}
+#|label: method parameter to geocode function - Using Open Street Map as a source with full results
+
+example <- geocode(address_to_geocode,
+                   address = "address",
+                   method = "osm",
+                   full_results = TRUE)
+example <- data.frame(example)
+example
+```
+
+For OSM as a source we also get information:
+
+-   about the address, such as what type of place it is,
+
+-   a bounding box which is a geographic area right around this coordinate,
+
+-   the address for those coordinates in the OSM database, and a bunch of other variables that don’t seem very useful for our purposes such as the “importance” of the address.
+
+```{r}
+#|label: method parameter to geocode function - Using US Census Bureau’s geocoder as a source with full results
+
+example <- geocode(address_to_geocode,
+                   address = "address",
+                   method = "census",
+                   full_results = TRUE)
+example <- data.frame(example)
+example
+```
+
+-   The Census results are similar to the OSM results and also have the matched address to compare your inputted address to.
+
+-   Most of the columns are just the address broken into different pieces (street, city, state, etc.) so are mostly repeating the address again in multiple columns.
+
+```{r}
+#|label: method parameter to geocode function - Using ArcGIS geocoder as a source with full results
+
+example <- geocode(address_to_geocode,
+                   address = "address",
+                   method = "arcgis",
+                   full_results = TRUE)
+example <- data.frame(example)
+example
+```
+
+-   For the ArcGIS results we have the matched address again, and then an important variable called “score,” which is basically a measure of how confident ArcGIS is that it matched the right address.
+
+-   Higher values are more confident, but in my experience anything under 90-95 confidence is an incorrect address.
+
+-   These results also repeat the longitude and latitude columns as “location.x” and “location.y” columns, and I’m not sure why they do so.
+
+## 24.2 Geocoding San Francisco marijuana dispensary locations
+
+```{r}
+#|label: load the readr packae
+
+library(readr)
+```
+
+```{r}
+#|label: read data into R
+
+marijuana <- read_csv("data/san_francisco_active_marijuana_retailers.csv")
+marijuana <- data.frame(marijuana)
+```
+
+```{r}
+#|label: check the first 6 rows
+
+head(marijuana)
+```
+
+```{r}
+#|label: county is always San Francisco - remove that part from address
+
+marijuana$Premise.Address <- gsub(" County: SAN FRANCISCO",
+                                  "", marijuana$Premise.Address)
+```
+
+```{r}
+#|label: check the first 6 rows of the column
+
+head(marijuana$Premise.Address)
+```
+
+```{r}
+#|label: geocode the Premise Address column
+
+marijuana <- geocode(marijuana, "Premise.Address")
+```
+
+```{r}
+#|label: check the summary of longitude column
+
+summary(marijuana$long)
+```
+
+```{r}
+#|label: check the summary of latitude column
+
+summary(marijuana$lat)
+```
+
+```{r}
+#|label: remove longitude and latitude columns for replacement
+
+marijuana$long <- NULL
+marijuana$lat <- NULL
+```
+
+```{r}
+#|label: Using ArcGIS geocoder as a source for San Francisco marijuana data
+
+marijuana <- geocode(marijuana,
+                     address = "Premise.Address",
+                     method = "arcgis")
+```
+
+```{r}
+#|label: check longitude again
+
+summary(marijuana$long)
+```
+
+```{r}
+#|label: check latitude again
+
+summary(marijuana$lat)
+```
+
+-   No more NAs, which means that we successfully geocoded our addresses.
+
+-   Another check is to make a simple scatterplot of the data.
+
+-   Since all of the data is from San Francisco, they should be relatively close to each other. If there are dots far from the rest, that is probably a geocoding issue.
+
+```{r}
+#|label: create a scatter plot to check longitude and latitude values
+
+plot(marijuana$long, marijuana$lat)
+```
